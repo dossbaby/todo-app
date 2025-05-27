@@ -91,7 +91,7 @@ function renderTodos() {
   list.innerHTML = "";
 
   const dateHeader = document.getElementById("dateHeader");
-  dateHeader.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><span>🍛 ${getFormattedDate()}</span><span id="tierInfoBtn" style="cursor:pointer">📊</span></div>`;
+  dateHeader.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><span>🍛 ${getFormattedDate()}</span><span id="tierInfoBtn" style="cursor:pointer">🧱</span></div>`;
 
   const tierBtn = document.getElementById("tierInfoBtn");
   if (tierBtn) {
