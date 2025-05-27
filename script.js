@@ -1,12 +1,40 @@
+// ✅ Firebase 설정 추가
+const firebaseConfig = {
+  apiKey: "AIzaSyCipUm4FyEJ5qb2jJ7HEsquLPT9ZMJsGVo",
+  authDomain: "todo-app-doss.firebaseapp.com",
+  projectId: "todo-app-doss",
+  storageBucket: "todo-app-doss.firebasestorage.app",
+  messagingSenderId: "477583861361",
+  appId: "1:477583861361:web:1a15bbed10c6b846eaddd0",
+  measurementId: "G-9344VTECSY",
+};
+
+// ✅ Firebase App & Firestore 초기화
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
 // ✅ 요소 선택
 const input = document.getElementById("todoInput");
 const button = document.getElementById("addBtn");
 const list = document.getElementById("todoList");
 
-// ✅ 로컬스토리지에서 기존 데이터 불러오기
-let todos = JSON.parse(localStorage.getItem("todos")) || [];
+// ✅ 사용자 이름 (간단한 데모용)
+let username =
+  localStorage.getItem("username") || prompt("닉네임을 입력하세요:");
+localStorage.setItem("username", username);
 
-// ✅ 티어 정보 및 메시지 (한글 이름 & 영문 백업)
+// ✅ Firestore에서 할 일 불러오기
+let todos = [];
+function loadTodosFromFirestore() {
+  db.collection("todos")
+    .orderBy("createdDate", "desc")
+    .onSnapshot((snapshot) => {
+      todos = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      renderTodos();
+    });
+}
+
+// ✅ 티어 정보 및 메시지
 const tiers = [
   {
     min: 0,
@@ -84,14 +112,10 @@ function getTierInfo(streak) {
 }
 
 function renderTodos() {
-  todos.forEach((todo) => {
-    if (todo.streak === undefined) todo.streak = 0;
-  });
-
   list.innerHTML = "";
 
   const dateHeader = document.getElementById("dateHeader");
-  dateHeader.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><span>🍛 ${getFormattedDate()}</span><span id="tierInfoBtn" style="cursor:pointer">🧱</span></div>`;
+  dateHeader.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><span>🧱 ${getFormattedDate()}</span><span id="tierInfoBtn" style="cursor:pointer">📊</span></div>`;
 
   const tierBtn = document.getElementById("tierInfoBtn");
   if (tierBtn) {
@@ -118,7 +142,7 @@ function renderTodos() {
             ${tiers
               .map(
                 (t) =>
-                  `<tr><td style="padding:6px 8px; white-space:nowrap;">${t.emoji} <strong>${t.label}</strong></td><td style="padding:6px 8px;">${t.message}</td><td style="padding:6px 8px;">${t.min}일</td></tr>`
+                  `<tr><td>${t.emoji} <strong>${t.label}</strong></td><td>${t.message}</td><td>${t.min}일</td></tr>`
               )
               .join("")}
           </tbody>
@@ -139,84 +163,38 @@ function renderTodos() {
     });
   }
 
-  todos.forEach((todo, index) => {
+  todos.forEach((todo) => {
     const li = document.createElement("li");
-
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.classList.add("todo-checkbox");
     checkbox.checked = todo.completed;
 
     checkbox.addEventListener("change", function () {
-      todos[index].completed = checkbox.checked;
-      saveTodos();
-
-      if (checkbox.checked) {
-        const streak = (todos[index].streak || 0) + 1;
-        const { current, next, toNext } = getTierInfo(streak);
-
-        const box = document.createElement("div");
-        box.className = "floating-streak-box";
-
-        const emoji = document.createElement("div");
-        emoji.className = "floating-emoji";
-        emoji.textContent = current.emoji;
-
-        const message = document.createElement("div");
-        message.className = "floating-message";
-        message.textContent = current.message;
-
-        box.appendChild(emoji);
-        box.appendChild(message);
-        document.body.appendChild(box);
-
-        setTimeout(() => {
-          box.remove();
-
-          if (next) {
-            const nextBox = document.createElement("div");
-            nextBox.className = "floating-streak-box";
-
-            const nextEmoji = document.createElement("div");
-            nextEmoji.className = "floating-emoji";
-            nextEmoji.textContent = next.emoji;
-
-            const nextMessage = document.createElement("div");
-            nextMessage.className = "floating-message";
-            nextMessage.textContent = `${next.label}까지 ${toNext}일 남았어요! 고고!`;
-
-            nextBox.appendChild(nextEmoji);
-            nextBox.appendChild(nextMessage);
-            document.body.appendChild(nextBox);
-
-            setTimeout(() => {
-              nextBox.remove();
-              renderTodos();
-            }, 1800);
-          } else {
-            renderTodos();
-          }
-        }, 1800);
-      } else {
-        renderTodos();
-      }
+      db.collection("todos").doc(todo.id).update({
+        completed: checkbox.checked,
+      });
     });
 
     const span = document.createElement("span");
     span.textContent = todo.text;
     if (todo.completed) li.classList.add("completed");
 
+    const userSpan = document.createElement("span");
+    userSpan.textContent = todo.username ? `👤 ${todo.username}` : "";
+    userSpan.style.fontSize = "13px";
+    userSpan.style.opacity = "0.6";
+
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "🗑️";
     deleteBtn.classList.add("delete-btn");
     deleteBtn.addEventListener("click", function () {
-      todos.splice(index, 1);
-      saveTodos();
-      renderTodos();
+      db.collection("todos").doc(todo.id).delete();
     });
 
     li.appendChild(checkbox);
     li.appendChild(span);
+    li.appendChild(userSpan);
 
     const tier = getTierInfo(todo.streak || 0).current;
     const tierSpan = document.createElement("span");
@@ -225,15 +203,6 @@ function renderTodos() {
     }일)`;
     tierSpan.classList.add("streak-badge");
     li.appendChild(tierSpan);
-
-    const now = new Date();
-    const hour = now.getHours();
-    if (todo.createdDate === getFormattedDate() && hour >= 21) {
-      const deadlineIcon = document.createElement("span");
-      deadlineIcon.textContent = "⏳";
-      deadlineIcon.classList.add("deadline-icon", "urgent");
-      li.appendChild(deadlineIcon);
-    }
 
     li.appendChild(deleteBtn);
     list.appendChild(li);
@@ -250,43 +219,20 @@ function getFormattedDate() {
   return `${year}년 ${month}월 ${day}일 (${dayOfWeek})`;
 }
 
-function saveTodos() {
-  localStorage.setItem("todos", JSON.stringify(todos));
-}
-
 function addTodo() {
   const todoText = input.value.trim();
   if (todoText === "") return;
 
-  todos.push({
+  db.collection("todos").add({
     text: todoText,
     completed: false,
     streak: 0,
     lastCompletedDate: "",
     createdDate: getFormattedDate(),
+    username: username,
   });
 
   input.value = "";
-  saveTodos();
-  renderTodos();
-}
-
-function updateTodosByDate() {
-  const today = getFormattedDate();
-
-  todos = todos.filter((todo) => {
-    if (todo.createdDate === today) return true;
-    if (todo.completed && todo.lastCompletedDate !== today) {
-      todo.streak = (todo.streak || 0) + 1;
-      todo.completed = false;
-      todo.lastCompletedDate = today;
-      todo.createdDate = today;
-      return true;
-    }
-    return false;
-  });
-
-  saveTodos();
 }
 
 button.addEventListener("click", addTodo);
@@ -294,5 +240,5 @@ input.addEventListener("keydown", function (e) {
   if (e.key === "Enter") addTodo();
 });
 
-updateTodosByDate();
-renderTodos();
+// ✅ 최초 실행
+loadTodosFromFirestore();
