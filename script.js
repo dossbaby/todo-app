@@ -91,7 +91,7 @@ function renderTodos() {
   list.innerHTML = "";
 
   const dateHeader = document.getElementById("dateHeader");
-  dateHeader.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><span>🍛 ${getFormattedDate()}</span><span id="tierInfoBtn" style="cursor:pointer">🧱</span></div>`;
+  dateHeader.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><span>🍛 ${getFormattedDate()}</span><span id="tierInfoBtn" style="cursor:pointer">📊</span></div>`;
 
   const tierBtn = document.getElementById("tierInfoBtn");
   if (tierBtn) {
@@ -150,7 +150,56 @@ function renderTodos() {
     checkbox.addEventListener("change", function () {
       todos[index].completed = checkbox.checked;
       saveTodos();
-      renderTodos();
+
+      if (checkbox.checked) {
+        const streak = (todos[index].streak || 0) + 1;
+        const { current, next, toNext } = getTierInfo(streak);
+
+        const box = document.createElement("div");
+        box.className = "floating-streak-box";
+
+        const emoji = document.createElement("div");
+        emoji.className = "floating-emoji";
+        emoji.textContent = current.emoji;
+
+        const message = document.createElement("div");
+        message.className = "floating-message";
+        message.textContent = current.message;
+
+        box.appendChild(emoji);
+        box.appendChild(message);
+        document.body.appendChild(box);
+
+        setTimeout(() => {
+          box.remove();
+
+          if (next) {
+            const nextBox = document.createElement("div");
+            nextBox.className = "floating-streak-box";
+
+            const nextEmoji = document.createElement("div");
+            nextEmoji.className = "floating-emoji";
+            nextEmoji.textContent = next.emoji;
+
+            const nextMessage = document.createElement("div");
+            nextMessage.className = "floating-message";
+            nextMessage.textContent = `${next.label}까지 ${toNext}일 남았어요! 고고!`;
+
+            nextBox.appendChild(nextEmoji);
+            nextBox.appendChild(nextMessage);
+            document.body.appendChild(nextBox);
+
+            setTimeout(() => {
+              nextBox.remove();
+              renderTodos();
+            }, 1800);
+          } else {
+            renderTodos();
+          }
+        }, 1800);
+      } else {
+        renderTodos();
+      }
     });
 
     const span = document.createElement("span");
