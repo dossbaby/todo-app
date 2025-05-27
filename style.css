@@ -1,0 +1,373 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui,
+    sans-serif;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-width: 480px; /* 모바일 기준 폭 제한 */
+  margin: 0 auto; /* 화면 중앙 정렬 */
+  border-left: 1px solid #eee; /* 선택적 시각 구분선 */
+  border-right: 1px solid #eee; /* 선택적 시각 구분선 */
+  background: white; /* 배경 흰색 유지 */
+}
+
+#todoList {
+  flex: 1;
+  overflow-y: auto;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#todoList li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  padding: 14px 16px;
+  margin-top: 5px;
+  margin-left: 5px;
+  margin-right: 5px;
+  margin-bottom: 12px;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+#todoList li.completed span {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+/* 체크박스 */
+.todo-checkbox {
+  transform: scale(1.2);
+  accent-color: #007aff; /* 토스 블루 */
+}
+
+/* 하단 입력바 */
+#inputBar {
+  display: flex;
+  padding: 10px;
+  border-top: 1px solid #ddd;
+  background-color: #fff;
+  position: sticky;
+  bottom: 0;
+}
+
+/* 입력창 스타일 */
+#todoInput {
+  flex: 1;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+/* 추가 버튼 스타일 */
+#addBtn {
+  margin-left: 10px;
+  padding: 10px 16px;
+  font-size: 16px;
+  border: none;
+  background: #0072ff;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#addBtn:hover {
+  /* hover 시 살짝 밝아진 gradient */
+  background: linear-gradient(135deg, #33d4ff, #339cff);
+}
+
+/* 할 일 완료 */
+.completed span {
+  text-decoration: line-through;
+  color: gray;
+}
+
+/* 리스트 항목 전체 정렬*/
+li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+/* 체크박스 스타일 */
+.todo-checkbox {
+  transform: scale(1.2);
+  cursor: pointer;
+}
+
+/* 삭제 버튼 */
+.delete-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.delete-btn:hover {
+  opacity: 1;
+}
+
+#dateHeader {
+  font-size: 18px;
+  font-weight: bold;
+  padding: 16px 12px;
+  border-bottom: 1px solid #ddd;
+}
+
+.streak-badge {
+  margin-left: auto;
+  font-size: 13px;
+  color: #555;
+  opacity: 0.9;
+}
+
+/* ⏳ 아이콘 */
+.deadline-icon {
+  font-size: 14px;
+  margin-left: 6px;
+  opacity: 0.6;
+  transition: transform 0.3s ease;
+}
+
+.deadline-icon.urgent {
+  animation: shake 0.6s infinite;
+  color: #ff4444;
+  opacity: 1;
+}
+
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-1px);
+  }
+  40% {
+    transform: translateX(1px);
+  }
+  60% {
+    transform: translateX(-1px);
+  }
+  80% {
+    transform: translateX(1px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.brick-flash {
+  position: absolute;
+  left: 5px;
+  font-size: 24px;
+  animation: riseUp 0.8s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes riseUp {
+  0% {
+    opacity: 0;
+    transform: translateY(0px) scale(0.8);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-20px) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.8);
+  }
+}
+
+.floating-streak {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 26px;
+  font-weight: bold;
+  color: #ff5c5c;
+  opacity: 0;
+  animation: floatUp 1s ease-out forwards;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+  }
+  30% {
+    transform: translate(-50%, -70%) scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -100%) scale(0.8);
+    opacity: 0;
+  }
+}
+
+.floating-streak-box {
+  position: fixed;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px 28px;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  z-index: 9999;
+  text-align: center;
+  animation: fadeUp 0.8s ease;
+  overflow: visible; /* 필수 */
+}
+
+/* 🌈 무지개 외곽 Glow 효과 */
+.floating-streak-box.glow-border::after {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  width: calc(100% + 12px);
+  height: calc(100% + 12px);
+  border-radius: 20px;
+  background: conic-gradient(
+    from 0deg,
+    red,
+    orange,
+    yellow,
+    lime,
+    cyan,
+    blue,
+    violet,
+    red
+  );
+  animation: spinGlow 2s linear infinite;
+  filter: blur(4px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.soft-glow {
+  position: fixed;
+  box-shadow: 0 0 12px 4px rgba(255, 200, 0, 0.5);
+  border-radius: 16px;
+}
+
+@keyframes spinGlow {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spinBorder {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.floating-emoji {
+  font-size: 40px;
+  margin-bottom: 10px;
+  z-index: 1;
+}
+
+.floating-message {
+  font-size: 15px;
+  font-weight: 500;
+  color: #333;
+  z-index: 1;
+}
+
+@keyframes fadeUp {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -40%);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.tier-popup {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border: 2px solid #eee;
+  border-radius: 12px;
+  padding: 20px;
+  z-index: 10000;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  max-width: 400px;
+  text-align: center;
+}
+
+.tier-popup h3 {
+  margin-bottom: 10px;
+}
+
+.tier-popup ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 10px 0;
+  text-align: left;
+}
+
+.tier-popup li {
+  margin: 6px 0;
+  font-size: 15px;
+}
+
+#closeTierPopup {
+  background: #007aff;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.tier-popup-content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 60px);
+  max-width: 480px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+  text-align: center;
+}
