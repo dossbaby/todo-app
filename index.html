@@ -2,19 +2,27 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Timebricks</title>
+    <title>쳇바퀴</title>
     <link rel="stylesheet" href="style.css" />
+    <!-- 절대경로 대신, index.html과 같은 폴더라면 상대경로 -->
+    <link rel="icon" href="./favicon.ico" type="image/x-icon" />
+    <!-- 구형 브라우저 호환용 -->
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon" />
   </head>
   <body>
-    <div id="app">
-      <div id="dateHeader"></div>
-      <ul id="todoList"></ul>
+    <div class="page-layout">
+      <img src="qkznl.png" class="side-img left" />
+      <div id="app">
+        <div id="dateHeader"></div>
+        <ul id="todoList"></ul>
 
-      <!-- 입력 영역 -->
-      <div id="inputBar">
-        <input type="text" id="todoInput" placeholder="할 일을 입력하세요" />
-        <button id="addBtn">추가</button>
+        <!-- 입력 영역 -->
+        <div id="inputBar">
+          <input type="text" id="todoInput" placeholder="할 일을 입력하세요" />
+          <button id="addBtn">추가</button>
+        </div>
       </div>
+      <img src="hamster.png" class="side-img right" />
     </div>
     <script src="script.js"></script>
   </body>

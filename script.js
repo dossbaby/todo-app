@@ -9,32 +9,35 @@ const firebaseConfig = {
   measurementId: "G-9344VTECSY",
 };
 
-// ✅ Firebase App & Firestore 초기화
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+// ✅ 사용자 이름 + 이모지 선택
+const emojis = ["🐶", "🐱", "🐰", "🦊", "🐻", "🐼", "🐨", "🐸"];
+let username = localStorage.getItem("username");
+let userIcon = localStorage.getItem("userIcon");
+
+function promptForUser() {
+  username = prompt("사용자 이름을 입력해주세요:");
+  let choice = prompt(
+    "원하는 동물 이모지를 선택해주세요 (1~8):\n" +
+      emojis.map((e, i) => `${i + 1}. ${e}`).join("\n")
+  );
+  userIcon = emojis[(parseInt(choice) - 1) % emojis.length] || "🐹";
+  localStorage.setItem("username", username);
+  localStorage.setItem("userIcon", userIcon);
+}
+
+if (!username || !userIcon) {
+  promptForUser();
+}
 
 // ✅ 요소 선택
 const input = document.getElementById("todoInput");
 const button = document.getElementById("addBtn");
 const list = document.getElementById("todoList");
 
-// ✅ 사용자 이름 (간단한 데모용)
-let username =
-  localStorage.getItem("username") || prompt("닉네임을 입력하세요:");
-localStorage.setItem("username", username);
+// ✅ 로컬스토리지에서 기존 데이터 불러오기
+let todos = JSON.parse(localStorage.getItem("todos")) || [];
 
-// ✅ Firestore에서 할 일 불러오기
-let todos = [];
-function loadTodosFromFirestore() {
-  db.collection("todos")
-    .orderBy("createdDate", "desc")
-    .onSnapshot((snapshot) => {
-      todos = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      renderTodos();
-    });
-}
-
-// ✅ 티어 정보 및 메시지
+// ✅ 티어 정보 및 메시지 (한글 이름 & 영문 백업)
 const tiers = [
   {
     min: 0,
@@ -112,89 +115,144 @@ function getTierInfo(streak) {
 }
 
 function renderTodos() {
+  todos.forEach((todo) => {
+    if (todo.streak === undefined) todo.streak = 0;
+  });
+
   list.innerHTML = "";
 
   const dateHeader = document.getElementById("dateHeader");
-  dateHeader.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><span>🧱 ${getFormattedDate()}</span><span id="tierInfoBtn" style="cursor:pointer">📊</span></div>`;
+  dateHeader.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><span>${getFormattedDate()}</span><div style="display:flex; gap:8px;"><span id="userSetting" style="cursor:pointer">🪳</span><span id="tierInfoBtn" style="cursor:pointer">🧱</span></div></div>`;
 
-  const tierBtn = document.getElementById("tierInfoBtn");
-  if (tierBtn) {
-    tierBtn.addEventListener("click", () => {
-      const overlay = document.createElement("div");
-      overlay.style.position = "fixed";
-      overlay.style.top = "0";
-      overlay.style.left = "0";
-      overlay.style.width = "100vw";
-      overlay.style.height = "100vh";
-      overlay.style.background = "rgba(0, 0, 0, 0.3)";
-      overlay.style.zIndex = "9998";
-      overlay.addEventListener("click", () =>
-        document.body.removeChild(container)
-      );
+  document.getElementById("userSetting").addEventListener("click", () => {
+    promptForUser();
+    renderTodos();
+  });
 
-      const popup = document.createElement("div");
-      popup.className = "tier-popup-content";
-      popup.innerHTML = `
-        <h3 style="text-align:center; font-size:18px; margin-bottom:10px;">🏆 티어 랭킹</h3>
-        <table style="width:100%; border-collapse:collapse; font-size:15px; text-align:center;">
-          <thead><tr><th>티어</th><th>설명</th><th>연속 기준</th></tr></thead>
-          <tbody>
-            ${tiers
-              .map(
-                (t) =>
-                  `<tr><td>${t.emoji} <strong>${t.label}</strong></td><td>${t.message}</td><td>${t.min}일</td></tr>`
-              )
-              .join("")}
-          </tbody>
-        </table>
-        <div style="text-align:center; margin-top:12px;"><button id="closeTierPopup" style="background:#007aff; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer;">닫기</button></div>
-      `;
+  document.getElementById("tierInfoBtn").addEventListener("click", () => {
+    const overlay = document.createElement("div");
+    overlay.style.position = "fixed";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.width = "100vw";
+    overlay.style.height = "100vh";
+    overlay.style.background = "rgba(0, 0, 0, 0.3)";
+    overlay.style.zIndex = "9998";
+    overlay.addEventListener("click", () =>
+      document.body.removeChild(container)
+    );
 
-      const container = document.createElement("div");
-      container.appendChild(overlay);
-      container.appendChild(popup);
-      document.body.appendChild(container);
+    const popup = document.createElement("div");
+    popup.className = "tier-popup-content";
+    popup.innerHTML = `
+      <h3 style="text-align:center; font-size:18px; margin-bottom:10px;">🏆 티어 랭킹</h3>
+      <table style="width:100%; border-collapse:collapse; font-size:15px; text-align:center;">
+        <thead><tr><th>티어</th><th>설명</th><th>연속 기준</th></tr></thead>
+        <tbody>
+          ${tiers
+            .map(
+              (t) =>
+                `<tr><td style="padding:6px 8px; white-space:nowrap;">${t.emoji} <strong>${t.label}</strong></td><td style="padding:6px 8px;">${t.message}</td><td style="padding:6px 8px;">${t.min}일</td></tr>`
+            )
+            .join("")}
+        </tbody>
+      </table>
+      <div style="text-align:center; margin-top:12px;"><button id="closeTierPopup" style="background:#007aff; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer;">닫기</button></div>
+    `;
 
-      document
-        .getElementById("closeTierPopup")
-        .addEventListener("click", () => {
-          document.body.removeChild(container);
-        });
+    const container = document.createElement("div");
+    container.appendChild(overlay);
+    container.appendChild(popup);
+    document.body.appendChild(container);
+
+    document.getElementById("closeTierPopup").addEventListener("click", () => {
+      document.body.removeChild(container);
     });
-  }
+  });
 
-  todos.forEach((todo) => {
+  todos.forEach((todo, index) => {
     const li = document.createElement("li");
+
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.classList.add("todo-checkbox");
     checkbox.checked = todo.completed;
 
     checkbox.addEventListener("change", function () {
-      db.collection("todos").doc(todo.id).update({
-        completed: checkbox.checked,
-      });
+      todos[index].completed = checkbox.checked;
+      saveTodos();
+
+      if (checkbox.checked) {
+        const streak = (todos[index].streak || 0) + 1;
+        const { current, next, toNext } = getTierInfo(streak);
+
+        const box = document.createElement("div");
+        box.className = "floating-streak-box";
+
+        const emoji = document.createElement("div");
+        emoji.className = "floating-emoji";
+        emoji.textContent = current.emoji;
+
+        const message = document.createElement("div");
+        message.className = "floating-message";
+        message.textContent = current.message;
+
+        box.appendChild(emoji);
+        box.appendChild(message);
+        document.body.appendChild(box);
+
+        setTimeout(() => {
+          box.remove();
+          if (next) {
+            const nextBox = document.createElement("div");
+            nextBox.className = "floating-streak-box";
+
+            const nextEmoji = document.createElement("div");
+            nextEmoji.className = "floating-emoji";
+            nextEmoji.textContent = next.emoji;
+
+            const nextMessage = document.createElement("div");
+            nextMessage.className = "floating-message";
+            nextMessage.textContent = `${next.label}까지 ${toNext}일 남았어요! 고고!`;
+
+            nextBox.appendChild(nextEmoji);
+            nextBox.appendChild(nextMessage);
+            document.body.appendChild(nextBox);
+
+            setTimeout(() => {
+              nextBox.remove();
+              renderTodos();
+            }, 1800);
+          } else {
+            renderTodos();
+          }
+        }, 1800);
+      } else {
+        renderTodos();
+      }
     });
 
     const span = document.createElement("span");
     span.textContent = todo.text;
     if (todo.completed) li.classList.add("completed");
 
-    const userSpan = document.createElement("span");
-    userSpan.textContent = todo.username ? `👤 ${todo.username}` : "";
-    userSpan.style.fontSize = "13px";
-    userSpan.style.opacity = "0.6";
-
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "🗑️";
     deleteBtn.classList.add("delete-btn");
     deleteBtn.addEventListener("click", function () {
-      db.collection("todos").doc(todo.id).delete();
+      todos.splice(index, 1);
+      saveTodos();
+      renderTodos();
     });
+
+    const userLabel = document.createElement("span");
+    userLabel.textContent = `${userIcon} ${todo.user || username}`;
+    userLabel.style.fontSize = "12px";
+    userLabel.style.opacity = "0.6";
 
     li.appendChild(checkbox);
     li.appendChild(span);
-    li.appendChild(userSpan);
+    li.appendChild(userLabel);
 
     const tier = getTierInfo(todo.streak || 0).current;
     const tierSpan = document.createElement("span");
@@ -203,6 +261,15 @@ function renderTodos() {
     }일)`;
     tierSpan.classList.add("streak-badge");
     li.appendChild(tierSpan);
+
+    const now = new Date();
+    const hour = now.getHours();
+    if (todo.createdDate === getFormattedDate() && hour >= 21) {
+      const deadlineIcon = document.createElement("span");
+      deadlineIcon.textContent = "⏳";
+      deadlineIcon.classList.add("deadline-icon", "urgent");
+      li.appendChild(deadlineIcon);
+    }
 
     li.appendChild(deleteBtn);
     list.appendChild(li);
@@ -219,20 +286,44 @@ function getFormattedDate() {
   return `${year}년 ${month}월 ${day}일 (${dayOfWeek})`;
 }
 
+function saveTodos() {
+  localStorage.setItem("todos", JSON.stringify(todos));
+}
+
 function addTodo() {
   const todoText = input.value.trim();
   if (todoText === "") return;
 
-  db.collection("todos").add({
+  todos.push({
     text: todoText,
     completed: false,
     streak: 0,
     lastCompletedDate: "",
     createdDate: getFormattedDate(),
-    username: username,
+    user: username,
   });
 
   input.value = "";
+  saveTodos();
+  renderTodos();
+}
+
+function updateTodosByDate() {
+  const today = getFormattedDate();
+
+  todos = todos.filter((todo) => {
+    if (todo.createdDate === today) return true;
+    if (todo.completed && todo.lastCompletedDate !== today) {
+      todo.streak = (todo.streak || 0) + 1;
+      todo.completed = false;
+      todo.lastCompletedDate = today;
+      todo.createdDate = today;
+      return true;
+    }
+    return false;
+  });
+
+  saveTodos();
 }
 
 button.addEventListener("click", addTodo);
@@ -240,5 +331,5 @@ input.addEventListener("keydown", function (e) {
   if (e.key === "Enter") addTodo();
 });
 
-// ✅ 최초 실행
-loadTodosFromFirestore();
+updateTodosByDate();
+renderTodos();
