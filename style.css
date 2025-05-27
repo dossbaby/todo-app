@@ -14,17 +14,17 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  gap: 40px; /* 앱과 이미지 간 여백 */
-  background: #fdfaf3; /* 필요 시 배경 */
+  gap: 0; /* 앱과 이미지 간 여백 */
+  flex-direction: row-reverse;
 }
 
 #app {
   display: flex;
   flex-direction: column;
   height: 100dvh;
-  max-width: 512px; /* 모바일 기준 폭 제한 */
+  max-width: 480px; /* 모바일 기준 폭 제한 */
   width: 100%;
-  margin: 0 auto; /* 화면 중앙 정렬 */
+  margin: 0 80px; /* 화면 중앙 정렬 */
   border-left: 1px solid #eee; /* 선택적 시각 구분선 */
   border-right: 1px solid #eee; /* 선택적 시각 구분선 */
   background: white; /* 배경 흰색 유지 */
@@ -367,19 +367,21 @@ li {
   cursor: pointer;
 }
 
+/* 1) 기존 .tier-popup-content 블록을 찾아서 아래로 교체 */
 .tier-popup-content {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: calc(100% - 60px);
-  max-width: 480px;
+  position: fixed !important; /* 뷰포트 고정 */
+  top: 30% !important; /* 화면 세로 중앙 */
+  left: 50% !important; /* 화면 가로 중앙 */
+  transform: translate(-50%, -50%) !important;
+  width: 300px; /* 팝업 너비 조절 */
+  max-width: 90%; /* 모바일 대응 */
   background: #fff;
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  z-index: 9999;
+  z-index: 10000; /* 다른 모든 요소 위에 */
   text-align: center;
+  overflow: visible; /* 강조 애니메이션 살리기 */
 }
 
 .side-img {
@@ -387,4 +389,27 @@ li {
   height: 512px;
   object-fit: cover;
   border-radius: 50%;
+  border: solid 15px #cbe3ef;
+}
+
+/* 사용자 설정 모달 전용 스타일 */
+.user-modal-content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 480px;
+  max-width: 90%;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+  text-align: center;
+  overflow: visible;
+}
+
+/* 그리고 overlay 안의 user-modal-content만 타깃팅해도 돼요 */
+.user-modal-content h3 {
+  margin-bottom: 12px;
 }

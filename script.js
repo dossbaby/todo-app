@@ -9,38 +9,155 @@ const firebaseConfig = {
   measurementId: "G-9344VTECSY",
 };
 
-// ✅ 사용자 이름 + 이모지 선택
+// Firebase 초기화
+const app = firebase.initializeApp(firebaseConfig);
+// Firestore 참조 얻기
+const db = firebase.firestore();
+
+// ✅ 사용자 이름 + 이모지 선택 (팝업 기반)
 const emojis = ["🐶", "🐱", "🐰", "🦊", "🐻", "🐼", "🐨", "🐸"];
 let username = localStorage.getItem("username");
 let userIcon = localStorage.getItem("userIcon");
 
-function promptForUser() {
-  username = prompt("사용자 이름을 입력해주세요:");
-  let choice = prompt(
-    "원하는 동물 이모지를 선택해주세요 (1~8):\n" +
-      emojis.map((e, i) => `${i + 1}. ${e}`).join("\n")
-  );
-  userIcon = emojis[(parseInt(choice) - 1) % emojis.length] || "🐹";
-  localStorage.setItem("username", username);
-  localStorage.setItem("userIcon", userIcon);
+function createUserModal() {
+  // 오버레이
+  const overlay = document.createElement("div");
+  overlay.style.cssText = `
+    position:fixed; top:0; left:0;
+    width:100vw; height:100vh;
+    background:rgba(0,0,0,0.3);
+    z-index:9998;
+  `;
+  // 팝업 컨테이너
+  const popup = document.createElement("div");
+  popup.className = "tier-popup-content";
+  popup.style.cssText = `
+    background:white; padding:20px;
+    border-radius:8px; width:300px;
+    margin:100px auto; text-align:center;
+    position:relative;
+  `;
+
+  // STEP 1: 닉네임 입력
+  const nicknameStep = document.createElement("div");
+  nicknameStep.innerHTML = `
+    <h3 style="margin-bottom:10px;">👋 닉네임 설정</h3>
+    <input id="nicknameInput" placeholder="닉네임 입력"
+      style="padding:8px; width:100%; margin-bottom:12px;
+             border:1px solid #ccc; border-radius:6px; font-size:14px;"
+      value="${username || ""}"
+    />
+    <button id="nextToEmoji" style="
+      background:#007aff; color:white;
+      padding:6px 12px; border:none;
+      border-radius:6px; cursor:pointer;
+    ">다음</button>
+  `;
+
+  // STEP 2: 이모지 선택
+  const emojiStep = document.createElement("div");
+  emojiStep.style.display = "none";
+  emojiStep.innerHTML = `
+    <h3 style="margin-bottom:10px;">이모지 선택</h3>
+    <div style="
+      display:grid; grid-template-columns:repeat(4,1fr);
+      gap:10px; margin-bottom:16px;
+    ">
+      ${emojis
+        .map(
+          (e, i) => `
+        <div class="emoji-choice" data-idx="${i}"
+             style="cursor:pointer; font-size:24px;
+                    padding:4px; border:2px solid transparent;">
+          ${e}
+        </div>`
+        )
+        .join("")}
+    </div>
+    <button id="saveUserBtn" style="
+      background:#007aff; color:white;
+      padding:6px 12px; border:none;
+      border-radius:6px; cursor:pointer;
+    ">저장</button>
+  `;
+
+  // 컨테이너 조립
+  const container = document.createElement("div");
+  container.append(overlay, popup);
+  popup.append(nicknameStep, emojiStep);
+  document.body.appendChild(container);
+
+  // STEP1: 닉네임 입력 후
+  document.getElementById("nextToEmoji").addEventListener("click", () => {
+    const nick = document.getElementById("nicknameInput").value.trim();
+    if (!nick) return alert("닉네임을 입력해주세요");
+    username = nick;
+    nicknameStep.style.display = "none";
+    emojiStep.style.display = "block";
+  });
+
+  // STEP2: 이모지 선택
+  let selectedIdx = 0;
+  emojiStep.querySelectorAll(".emoji-choice").forEach((el) => {
+    el.addEventListener("click", () => {
+      emojiStep
+        .querySelectorAll(".emoji-choice")
+        .forEach((e) => (e.style.border = "2px solid transparent"));
+      el.style.border = "2px solid #007aff";
+      selectedIdx = +el.dataset.idx;
+    });
+  });
+
+  // STEP2: 저장
+  document.getElementById("saveUserBtn").addEventListener("click", () => {
+    userIcon = emojis[selectedIdx];
+    localStorage.setItem("username", username);
+    localStorage.setItem("userIcon", userIcon);
+    document.body.removeChild(container);
+    renderTodos();
+  });
+
+  // 배경 클릭 시 닫기
+  overlay.addEventListener("click", () => {
+    document.body.removeChild(container);
+  });
 }
 
-if (!username || !userIcon) {
-  promptForUser();
-}
+if (!username || !userIcon) createUserModal();
 
 // ✅ 요소 선택
 const input = document.getElementById("todoInput");
 const button = document.getElementById("addBtn");
 const list = document.getElementById("todoList");
 
-// ✅ 로컬스토리지에서 기존 데이터 불러오기
-let todos = JSON.parse(localStorage.getItem("todos")) || [];
+// Firestore에서 todos 컬렉션 구독
+let todos = [];
+db.collection("todos")
+  .orderBy("createdAt")
+  .onSnapshot(
+    (snapshot) => {
+      todos = snapshot.docs.map((doc) => {
+        return { id: doc.id, ...doc.data() };
+      });
+      renderTodos();
+    },
+    (err) => {
+      console.error("❌ Firestore 읽기 실패:", err);
+    }
+  );
 
 // ✅ 티어 정보 및 메시지 (한글 이름 & 영문 백업)
 const tiers = [
   {
     min: 0,
+    emoji: "🐹",
+    label: "쌩뉴비",
+    message: "처음 걸음을 내디뎠어요!",
+    name: "Newbie",
+  },
+
+  {
+    min: 1,
     emoji: "🌱",
     label: "새싹",
     message: "새싹이 자라고 있어요!",
@@ -125,8 +242,7 @@ function renderTodos() {
   dateHeader.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><span>${getFormattedDate()}</span><div style="display:flex; gap:8px;"><span id="userSetting" style="cursor:pointer">🪳</span><span id="tierInfoBtn" style="cursor:pointer">🧱</span></div></div>`;
 
   document.getElementById("userSetting").addEventListener("click", () => {
-    promptForUser();
-    renderTodos();
+    createUserModal();
   });
 
   document.getElementById("tierInfoBtn").addEventListener("click", () => {
@@ -143,7 +259,8 @@ function renderTodos() {
     );
 
     const popup = document.createElement("div");
-    popup.className = "tier-popup-content";
+    // 팝업마다 고유한 클래스 사용
+    popup.className = "user-modal-content";
     popup.innerHTML = `
       <h3 style="text-align:center; font-size:18px; margin-bottom:10px;">🏆 티어 랭킹</h3>
       <table style="width:100%; border-collapse:collapse; font-size:15px; text-align:center;">
@@ -178,58 +295,24 @@ function renderTodos() {
     checkbox.classList.add("todo-checkbox");
     checkbox.checked = todo.completed;
 
-    checkbox.addEventListener("change", function () {
-      todos[index].completed = checkbox.checked;
-      saveTodos();
+    // checkbox 클릭/변경 이벤트를 Firestore 업데이트로 대체
+    checkbox.addEventListener("change", () => {
+      const docRef = db.collection("todos").doc(todo.id);
+      const isDone = checkbox.checked;
+      const newStreak = isDone ? (todo.streak || 0) + 1 : todo.streak;
+      const updates = {
+        completed: isDone,
+        lastCompletedDate: isDone ? getFormattedDate() : todo.lastCompletedDate,
+        streak: newStreak,
+      };
 
-      if (checkbox.checked) {
-        const streak = (todos[index].streak || 0) + 1;
-        const { current, next, toNext } = getTierInfo(streak);
-
-        const box = document.createElement("div");
-        box.className = "floating-streak-box";
-
-        const emoji = document.createElement("div");
-        emoji.className = "floating-emoji";
-        emoji.textContent = current.emoji;
-
-        const message = document.createElement("div");
-        message.className = "floating-message";
-        message.textContent = current.message;
-
-        box.appendChild(emoji);
-        box.appendChild(message);
-        document.body.appendChild(box);
-
-        setTimeout(() => {
-          box.remove();
-          if (next) {
-            const nextBox = document.createElement("div");
-            nextBox.className = "floating-streak-box";
-
-            const nextEmoji = document.createElement("div");
-            nextEmoji.className = "floating-emoji";
-            nextEmoji.textContent = next.emoji;
-
-            const nextMessage = document.createElement("div");
-            nextMessage.className = "floating-message";
-            nextMessage.textContent = `${next.label}까지 ${toNext}일 남았어요! 고고!`;
-
-            nextBox.appendChild(nextEmoji);
-            nextBox.appendChild(nextMessage);
-            document.body.appendChild(nextBox);
-
-            setTimeout(() => {
-              nextBox.remove();
-              renderTodos();
-            }, 1800);
-          } else {
-            renderTodos();
-          }
-        }, 1800);
-      } else {
-        renderTodos();
-      }
+      docRef
+        .update(updates)
+        .then(() => {
+          console.log("✅ Firestore 업데이트 성공");
+          if (isDone) showStreakPopup(newStreak);
+        })
+        .catch((err) => console.error("❌ 업데이트 실패:", err));
     });
 
     const span = document.createElement("span");
@@ -239,10 +322,13 @@ function renderTodos() {
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "🗑️";
     deleteBtn.classList.add("delete-btn");
-    deleteBtn.addEventListener("click", function () {
-      todos.splice(index, 1);
-      saveTodos();
-      renderTodos();
+    // 기존 deleteBtn 이벤트 핸들러 대신 이걸로 바꿔
+    deleteBtn.addEventListener("click", () => {
+      db.collection("todos")
+        .doc(todo.id)
+        .delete()
+        .then(() => console.log("🗑️ Firestore에서 삭제 완료"))
+        .catch((err) => console.error("❌ 삭제 실패:", err));
     });
 
     const userLabel = document.createElement("span");
@@ -251,6 +337,11 @@ function renderTodos() {
     userLabel.style.opacity = "0.6";
 
     li.appendChild(checkbox);
+    // 오늘 날짜로 체크된 항목이면 다시 클릭 못 하게 막기
+    if (todo.completed && todo.lastCompletedDate === getFormattedDate()) {
+      checkbox.disabled = true;
+    }
+
     li.appendChild(span);
     li.appendChild(userLabel);
 
@@ -276,6 +367,31 @@ function renderTodos() {
   });
 }
 
+function showStreakPopup(streak) {
+  const { current, next, toNext } = getTierInfo(streak);
+
+  // 메인 팝업
+  const box = document.createElement("div");
+  box.className = "floating-streak-box";
+  box.innerHTML = `<div class="floating-emoji">${current.emoji}</div>
+                   <div class="floating-message">${current.message}</div>`;
+  document.body.appendChild(box);
+
+  setTimeout(() => {
+    box.remove();
+
+    // 다음 티어까지 안내 팝업
+    if (next) {
+      const nextBox = document.createElement("div");
+      nextBox.className = "floating-streak-box";
+      nextBox.innerHTML = `<div class="floating-emoji">${next.emoji}</div>
+                           <div class="floating-message">${next.label}까지 ${toNext}일 남았어요! 고고!</div>`;
+      document.body.appendChild(nextBox);
+      setTimeout(() => nextBox.remove(), 1800);
+    }
+  }, 1800);
+}
+
 function getFormattedDate() {
   const today = new Date();
   const weekDays = ["일", "월", "화", "수", "목", "금", "토"];
@@ -291,45 +407,100 @@ function saveTodos() {
 }
 
 function addTodo() {
+  console.log("▶ addTodo 실행됨"); // 여기가 찍히나 확인
   const todoText = input.value.trim();
-  if (todoText === "") return;
+  if (!todoText) return;
 
-  todos.push({
-    text: todoText,
-    completed: false,
-    streak: 0,
-    lastCompletedDate: "",
-    createdDate: getFormattedDate(),
-    user: username,
-  });
-
-  input.value = "";
-  saveTodos();
-  renderTodos();
+  // 1) 로컬스토리지 저장 대신 Firestore에 쓰기
+  db.collection("todos")
+    .add({
+      text: todoText,
+      completed: false,
+      streak: 0,
+      createdDate: getFormattedDate(),
+      user: username,
+      userIcon: userIcon,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    })
+    .then(() => {
+      console.log("✅ Firestore에 할 일 저장 완료");
+      input.value = "";
+    })
+    .catch((err) => {
+      console.error("❌ Firestore 저장 실패:", err);
+    });
 }
 
 function updateTodosByDate() {
   const today = getFormattedDate();
+  todos.forEach((todo) => {
+    // 오늘 만든 게 아니면
+    if (todo.createdDate !== today) {
+      const docRef = db.collection("todos").doc(todo.id);
 
-  todos = todos.filter((todo) => {
-    if (todo.createdDate === today) return true;
-    if (todo.completed && todo.lastCompletedDate !== today) {
-      todo.streak = (todo.streak || 0) + 1;
-      todo.completed = false;
-      todo.lastCompletedDate = today;
-      todo.createdDate = today;
-      return true;
+      if (todo.completed && todo.lastCompletedDate !== today) {
+        // 어제 완료했던 건: streak +1, completed 리셋, 날짜 갱신
+        const newStreak = (todo.streak || 0) + 1;
+        docRef
+          .update({
+            streak: newStreak,
+            completed: false,
+            createdDate: today,
+            lastCompletedDate: today,
+          })
+          .then(() => console.log(`✅ ${todo.text} 날짜 업데이트`))
+          .catch((err) => console.error("❌ 업데이트 실패", err));
+      } else {
+        // 안 한 건/이미 처리된 건 지우기
+        docRef
+          .delete()
+          .then(() => console.log(`🗑️ ${todo.text} 삭제`))
+          .catch((err) => console.error("❌ 삭제 실패", err));
+      }
     }
-    return false;
   });
-
-  saveTodos();
 }
+
+let initialized = false;
+db.collection("todos")
+  .orderBy("createdAt")
+  .onSnapshot(
+    (snapshot) => {
+      todos = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+      if (!initialized) {
+        updateTodosByDate();
+        initialized = true;
+      }
+
+      renderTodos();
+    },
+    (err) => {
+      console.error("❌ Firestore 읽기 실패:", err);
+    }
+  );
+
+// 자정에 한 번 실행하고, 매일 자정마다 반복 호출하는 함수
+function scheduleMidnightUpdate() {
+  const now = new Date();
+  // KST 기준으로 다음 날 자정 시각 계산
+  const tomorrow = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() + 1
+  );
+  const delay = tomorrow.getTime() - now.getTime();
+
+  setTimeout(() => {
+    updateTodosByDate(); // 자정에 루틴 갱신
+    scheduleMidnightUpdate(); // 다시 다음 자정 스케줄
+  }, delay);
+}
+
+// onSnapshot 리스너 설정 끝난 뒤 한 번만 호출
+scheduleMidnightUpdate();
 
 button.addEventListener("click", addTodo);
 input.addEventListener("keydown", function (e) {
   if (e.key === "Enter") addTodo();
 });
-
-updateTodosByDate();
-renderTodos();
