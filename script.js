@@ -252,53 +252,79 @@ function renderTodos() {
 
   list.innerHTML = "";
 
+  // 1) 헤더 HTML 교체
   const dateHeader = document.getElementById("dateHeader");
-  dateHeader.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><span>${getFormattedDate()}</span><div style="display:flex; gap:8px;"><span id="userSetting" style="cursor:pointer">🪳</span><span id="tierInfoBtn" style="cursor:pointer">🧱</span></div></div>`;
+  dateHeader.innerHTML = `
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <span>${getFormattedDate()}</span>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <!-- 1) 사용자 설정 (🐹) -->
+      <span id="userSetting"    style="cursor:pointer">🐹</span>
+      <!-- 2) 리더보드 보기 (🏅) -->
+      <span id="leaderboardBtn" style="cursor:pointer">🏅</span>
+      <!-- 3) 티어 정보 보기 (🧱) -->
+      <span id="tierInfoBtn"    style="cursor:pointer">🧱</span>
+    </div>
+  </div>
+`;
 
+  // 2) 클릭 리스너 바인딩
   document.getElementById("userSetting").addEventListener("click", () => {
     createUserModal();
   });
 
-  document.getElementById("tierInfoBtn").addEventListener("click", () => {
-    const overlay = document.createElement("div");
-    overlay.style.position = "fixed";
-    overlay.style.top = "0";
-    overlay.style.left = "0";
-    overlay.style.width = "100vw";
-    overlay.style.height = "100vh";
-    overlay.style.background = "rgba(0, 0, 0, 0.3)";
-    overlay.style.zIndex = "9998";
-    overlay.addEventListener("click", () =>
-      document.body.removeChild(container)
-    );
+  document.getElementById("leaderboardBtn").addEventListener("click", () => {
+    const lb = computeLeaderboard(todos);
+    showLeaderboardPopup(lb);
+  });
 
+  document.getElementById("tierInfoBtn").addEventListener("click", () => {
+    // 기존 티어 팝업 로직
+    const overlay = document.createElement("div");
+    overlay.style.cssText = `
+    position:fixed; top:0; left:0;
+    width:100vw; height:100vh;
+    background:rgba(0,0,0,0.3);
+    z-index:9998;
+  `;
     const popup = document.createElement("div");
-    // 팝업마다 고유한 클래스 사용
     popup.className = "user-modal-content";
     popup.innerHTML = `
-      <h3 style="text-align:center; font-size:18px; margin-bottom:10px;">🏆 티어 랭킹</h3>
-      <table style="width:100%; border-collapse:collapse; font-size:15px; text-align:center;">
-        <thead><tr><th>티어</th><th>설명</th><th>연속 기준</th></tr></thead>
-        <tbody>
-          ${tiers
-            .map(
-              (t) =>
-                `<tr><td style="padding:6px 8px; white-space:nowrap;">${t.emoji} <strong>${t.label}</strong></td><td style="padding:6px 8px;">${t.message}</td><td style="padding:6px 8px;">${t.min}일</td></tr>`
-            )
-            .join("")}
-        </tbody>
-      </table>
-      <div style="text-align:center; margin-top:12px;"><button id="closeTierPopup" style="background:#007aff; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer;">닫기</button></div>
-    `;
+    <h3 style="text-align:center; font-size:18px; margin-bottom:10px;">🏆 티어 랭킹</h3>
+    <table style="width:100%; border-collapse:collapse; font-size:15px; text-align:center;">
+      <thead><tr><th>티어</th><th>설명</th><th>연속 기준</th></tr></thead>
+      <tbody>
+        ${tiers
+          .map(
+            (t) => `
+          <tr>
+            <td style="padding:6px 8px; white-space:nowrap;">${t.emoji} <strong>${t.label}</strong></td>
+            <td style="padding:6px 8px;">${t.message}</td>
+            <td style="padding:6px 8px;">${t.min}일</td>
+          </tr>`
+          )
+          .join("")}
+      </tbody>
+    </table>
+    <div style="text-align:center; margin-top:12px;">
+      <button id="closeTierPopup" style="
+        background:#007aff; color:white; 
+        padding:6px 12px; border:none; 
+        border-radius:6px; cursor:pointer;
+      ">닫기</button>
+    </div>
+  `;
 
     const container = document.createElement("div");
-    container.appendChild(overlay);
-    container.appendChild(popup);
+    container.append(overlay, popup);
     document.body.appendChild(container);
 
     document.getElementById("closeTierPopup").addEventListener("click", () => {
       document.body.removeChild(container);
     });
+    overlay.addEventListener("click", () =>
+      document.body.removeChild(container)
+    );
   });
 
   todos.forEach((todo, index) => {
@@ -572,6 +598,87 @@ function showConfirmModal(message, onConfirm) {
   overlay.addEventListener("click", () => {
     document.body.removeChild(container);
   });
+}
+
+// 1) 유저별 taskCount, streak 합계 → score 계산 후 score 기준 정렬
+function computeLeaderboard(todos) {
+  const map = {};
+  todos.forEach((todo) => {
+    const u = todo.user;
+    if (!map[u]) {
+      map[u] = {
+        userIcon: todo.userIcon,
+        user: u,
+        taskCount: 0,
+        streak: 0,
+      };
+    }
+    map[u].taskCount += 1;
+    map[u].streak += todo.streak || 0;
+  });
+  // 객체→배열, score 필드 추가, score 기준 내림차순 정렬
+  return Object.values(map)
+    .map((u) => ({ ...u, score: u.taskCount + u.streak }))
+    .sort((a, b) => b.score - a.score);
+}
+
+// 2) 리더보드 팝업: 컬럼 헤딩 조정 + score 표시
+function showLeaderboardPopup(leaderboard) {
+  const overlay = document.createElement("div");
+  overlay.style.cssText = `
+    position:fixed; top:0; left:0;
+    width:100vw; height:100vh;
+    background:rgba(0,0,0,0.3);
+    z-index:10000;
+  `;
+
+  const popup = document.createElement("div");
+  popup.className = "user-modal-content";
+  popup.innerHTML = `
+    <h3 style="text-align:center; font-size:18px; margin-bottom:10px;">🏅 리더보드</h3>
+    <table style="width:100%; border-collapse:collapse; font-size:15px; text-align:center;">
+      <thead>
+        <tr>
+          <th>순위</th>
+          <th>유저</th>
+          <th>할 일 수</th>
+          <th>연속 수</th>
+          <th>스코어</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${leaderboard
+          .map(
+            (u, i) => `
+          <tr>
+            <td style="padding:6px 8px;">${["🥇", "🥈", "🥉"][i] || i + 1}</td>
+            <td style="padding:6px 8px;">${u.userIcon} ${u.user}</td>
+            <td style="padding:6px 8px;">${u.taskCount}</td>
+            <td style="padding:6px 8px;">${u.streak}</td>
+            <td style="padding:6px 8px;">${u.score}</td>
+          </tr>
+        `
+          )
+          .join("")}
+      </tbody>
+    </table>
+    <div style="text-align:center; margin-top:12px;">
+      <button id="closeLeaderboardPopup" style="
+        background:#007aff; color:white;
+        padding:6px 12px; border:none;
+        border-radius:6px; cursor:pointer;
+      ">닫기</button>
+    </div>
+  `;
+
+  const container = document.createElement("div");
+  container.append(overlay, popup);
+  document.body.appendChild(container);
+
+  document
+    .getElementById("closeLeaderboardPopup")
+    .addEventListener("click", () => document.body.removeChild(container));
+  overlay.addEventListener("click", () => document.body.removeChild(container));
 }
 
 button.addEventListener("click", addTodo);
