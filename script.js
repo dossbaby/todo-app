@@ -390,8 +390,8 @@ function renderTodos() {
         .update(updates)
         .then(() => {
           console.log("✅ Firestore 업데이트 성공");
-          if (isDone) showStreakPopup(newStreak);
-          triggerConfetti(li);
+          if (isDone) triggerConfetti(li);
+          showStreakPopup(newStreak);
         })
         .catch((err) => console.error("❌ 업데이트 실패:", err));
     });
