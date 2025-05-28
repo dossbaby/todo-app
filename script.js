@@ -450,7 +450,7 @@ function renderTodos() {
 
 function switchTab(tabId) {
   document.querySelectorAll(".tab-content").forEach((el) => {
-    el.style.display = el.id === tabId ? "block" : "none";
+    el.style.display = el.id === tabId ? "flex" : "none";
   });
   document.querySelectorAll("#tabNav button").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.tab === tabId);

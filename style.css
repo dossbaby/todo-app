@@ -16,6 +16,7 @@ body {
   height: 100vh;
   gap: 0; /* 앱과 이미지 간 여백 */
   flex-direction: row-reverse;
+  background: #fdf8ef;
 }
 
 #app {
@@ -390,7 +391,7 @@ li {
   height: auto;
   object-fit: cover;
   border-radius: 50%;
-  border: solid 15px #cbe3ef;
+  border: solid 15px #375360;
 }
 
 /* 사용자 설정 모달 전용 스타일 */
@@ -451,6 +452,11 @@ li {
   overflow: hidden; /* 내부 스크롤만 허용하도록 */
 }
 
+div#tab-todo {
+  display: flex;
+  flex-direction: column;
+}
+
 /* ─── 탭 내비게이션 전체 스타일 ─── */
 #tabNav {
   display: flex;
@@ -492,6 +498,13 @@ li {
 /* ─── 호버 효과 ─── */
 #tabNav button:hover {
   color: #007aff;
+}
+
+.app-left,
+.app-right {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
 }
 
 @media (max-width: 787px) {
