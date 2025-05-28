@@ -110,11 +110,38 @@ function createUserModal() {
 
   // STEP2: 저장
   document.getElementById("saveUserBtn").addEventListener("click", () => {
-    userIcon = emojis[selectedIdx];
+    const oldUser = localStorage.getItem("username");
+    const oldIcon = localStorage.getItem("userIcon");
+
+    // 1) 먼저 로컬 스토리지에 저장
     localStorage.setItem("username", username);
     localStorage.setItem("userIcon", userIcon);
-    document.body.removeChild(container);
-    renderTodos();
+
+    // 2) 기존 Firestore 문서 중 oldUser 로 저장된 것 전부 찾아서 업데이트
+    db.collection("todos")
+      .where("user", "==", oldUser)
+      .get()
+      .then((snapshot) => {
+        const batch = db.batch();
+        snapshot.forEach((doc) => {
+          const ref = db.collection("todos").doc(doc.id);
+          batch.update(ref, {
+            user: username,
+            userIcon: userIcon,
+          });
+        });
+        return batch.commit();
+      })
+      .then(() => {
+        console.log("✅ 기존 할 일들에 새 닉네임·아이콘 반영 완료");
+        document.body.removeChild(container);
+        renderTodos();
+      })
+      .catch((err) => {
+        console.error("❌ 기존 할 일 업데이트 실패:", err);
+        document.body.removeChild(container);
+        renderTodos();
+      });
   });
 
   // 배경 클릭 시 닫기
@@ -322,17 +349,20 @@ function renderTodos() {
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "🗑️";
     deleteBtn.classList.add("delete-btn");
-    // 기존 deleteBtn 이벤트 핸들러 대신 이걸로 바꿔
     deleteBtn.addEventListener("click", () => {
-      db.collection("todos")
-        .doc(todo.id)
-        .delete()
-        .then(() => console.log("🗑️ Firestore에서 삭제 완료"))
-        .catch((err) => console.error("❌ 삭제 실패:", err));
+      showConfirmModal("정말 삭제하시겠습니까?", () => {
+        db.collection("todos")
+          .doc(todo.id)
+          .delete()
+          .then(() => console.log("🗑️ Firestore에서 삭제 완료"))
+          .catch((err) => console.error("❌ 삭제 실패:", err));
+      });
     });
 
     const userLabel = document.createElement("span");
-    userLabel.textContent = `${userIcon} ${todo.user || username}`;
+    const icon = todo.userIcon || userIcon;
+    const name = todo.user || username;
+    userLabel.textContent = `${icon} ${name}`;
     userLabel.style.fontSize = "12px";
     userLabel.style.opacity = "0.6";
 
@@ -499,6 +529,63 @@ function scheduleMidnightUpdate() {
 
 // onSnapshot 리스너 설정 끝난 뒤 한 번만 호출
 scheduleMidnightUpdate();
+
+function showConfirmModal(message, onConfirm) {
+  // 1) 오버레이
+  const overlay = document.createElement("div");
+  overlay.style.cssText = `
+    position:fixed; top:0; left:0;
+    width:100vw; height:100vh;
+    background:rgba(0,0,0,0.3);
+    z-index:10000;
+  `;
+
+  // 2) 팝업
+  const popup = document.createElement("div");
+  popup.style.cssText = `
+    position:fixed;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    background:#fff;
+    padding:20px;
+    border-radius:8px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.2);
+    text-align:center;
+    z-index:10001;
+  `;
+  popup.innerHTML = `
+    <p style="margin-bottom:16px; font-size:16px;">${message}</p>
+    <button id="confirmYes" style="
+      background:#ff3b30; color:#fff;
+      padding:8px 16px; border:none;
+      border-radius:6px; margin-right:8px;
+      cursor:pointer;
+    ">삭제</button>
+    <button id="confirmNo" style="
+      background:#ccc; color:#333;
+      padding:8px 16px; border:none;
+      border-radius:6px; cursor:pointer;
+    ">취소</button>
+  `;
+
+  const container = document.createElement("div");
+  container.append(overlay, popup);
+  document.body.appendChild(container);
+
+  // 3) 클릭 이벤트
+  document.getElementById("confirmYes").addEventListener("click", () => {
+    onConfirm();
+    document.body.removeChild(container);
+  });
+  document.getElementById("confirmNo").addEventListener("click", () => {
+    document.body.removeChild(container);
+  });
+
+  // 오버레이 클릭해도 닫히게
+  overlay.addEventListener("click", () => {
+    document.body.removeChild(container);
+  });
+}
 
 button.addEventListener("click", addTodo);
 input.addEventListener("keydown", function (e) {

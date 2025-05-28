@@ -2,6 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>쳇바퀴 100일 도전기!</title>
     <link rel="stylesheet" href="style.css" />
     <!-- 절대경로 대신, index.html과 같은 폴더라면 상대경로 -->
@@ -11,7 +12,7 @@
   </head>
   <body>
     <div class="page-layout">
-      <img src="qkznl.png" class="side-img left" />
+      <div class="app-left"><img src="qkznl.png" class="side-img left" /></div>
       <div id="app">
         <div id="dateHeader"></div>
         <ul id="todoList"></ul>
@@ -22,7 +23,9 @@
           <button id="addBtn">추가</button>
         </div>
       </div>
-      <img src="hamster.png" class="side-img right" />
+      <div class="app-right">
+        <img src="hamster.png" class="side-img right" />
+      </div>
     </div>
     <!-- index.html <head> 안, CSS 링크들 바로 아래에 -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
