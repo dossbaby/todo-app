@@ -100,13 +100,12 @@ function createUserModal() {
   // STEP2: 저장
   document.getElementById("saveUserBtn").addEventListener("click", () => {
     const oldUser = localStorage.getItem("username");
-    const oldIcon = localStorage.getItem("userIcon");
 
-    // 1) 먼저 로컬 스토리지에 저장
+    // 1) 로컬에도 저장
     localStorage.setItem("username", username);
-    localStorage.setItem("userIcon", userIcon);
+    localStorage.setItem("userIcon", emojis[selectedIdx]);
 
-    // 2) 기존 Firestore 문서 중 oldUser 로 저장된 것 전부 찾아서 업데이트
+    // 2) 기존 Firestore 문서 중 oldUser 로 저장된 것 전부 찾아서 batch 업데이트
     db.collection("todos")
       .where("user", "==", oldUser)
       .get()
@@ -115,19 +114,18 @@ function createUserModal() {
         snapshot.forEach((doc) => {
           const ref = db.collection("todos").doc(doc.id);
           batch.update(ref, {
-            user: username,
-            userIcon: userIcon,
+            userIcon: emojis[selectedIdx],
           });
         });
         return batch.commit();
       })
       .then(() => {
-        console.log("✅ 기존 할 일들에 새 닉네임·아이콘 반영 완료");
+        console.log("✅ 기존 할 일들 아이콘 반영 완료");
         document.body.removeChild(container);
         renderTodos();
       })
       .catch((err) => {
-        console.error("❌ 기존 할 일 업데이트 실패:", err);
+        console.error("❌ 아이콘 업데이트 실패:", err);
         document.body.removeChild(container);
         renderTodos();
       });
