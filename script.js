@@ -463,30 +463,30 @@ function addTodo() {
 
 function updateTodosByDate() {
   const today = getFormattedDate();
+
   todos.forEach((todo) => {
     // 오늘 만든 게 아니면
     if (todo.createdDate !== today) {
       const docRef = db.collection("todos").doc(todo.id);
 
+      // 공통으로 리셋할 필드
+      const updates = {
+        createdDate: today,
+        completed: false,
+      };
+
+      // 어제 체크했으면 streak +1, lastCompletedDate 갱신
       if (todo.completed && todo.lastCompletedDate !== today) {
-        // 어제 완료했던 건: streak +1, completed 리셋, 날짜 갱신
-        const newStreak = (todo.streak || 0) + 1;
-        docRef
-          .update({
-            streak: newStreak,
-            completed: false,
-            createdDate: today,
-            lastCompletedDate: today,
-          })
-          .then(() => console.log(`✅ ${todo.text} 날짜 업데이트`))
-          .catch((err) => console.error("❌ 업데이트 실패", err));
-      } else {
-        // 안 한 건/이미 처리된 건 지우기
-        docRef
-          .delete()
-          .then(() => console.log(`🗑️ ${todo.text} 삭제`))
-          .catch((err) => console.error("❌ 삭제 실패", err));
+        updates.streak = (todo.streak || 0) + 1;
+        updates.lastCompletedDate = today;
       }
+
+      docRef
+        .update(updates)
+        .then(() => console.log(`✅ "${todo.text}" carried over to ${today}`))
+        .catch((err) =>
+          console.error(`❌ carry-over failed for "${todo.text}"`, err)
+        );
     }
   });
 }
