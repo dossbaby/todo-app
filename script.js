@@ -347,7 +347,7 @@ function renderTodos() {
     });
 
     const userLabel = document.createElement("span");
-    const icon = todo.userIcon || userIcon;
+    const icon = todo.userIcon != null ? todo.userIcon : "🐹";
     const name = todo.user || username;
     userLabel.textContent = `${icon} ${name}`;
     userLabel.style.fontSize = "12px";
