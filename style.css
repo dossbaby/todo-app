@@ -385,8 +385,8 @@ li {
 }
 
 .side-img {
-  width: 512px;
-  height: 512px;
+  width: 300px;
+  height: auto;
   object-fit: cover;
   border-radius: 50%;
   border: solid 15px #cbe3ef;
