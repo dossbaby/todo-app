@@ -414,6 +414,35 @@ li {
   margin-bottom: 12px;
 }
 
+/* li를 상대 위치로 만들어야 컨페티가 보인다 */
+#todoList li {
+  position: relative;
+  overflow: visible;
+}
+
+/* 컨페티 조각 기본 스타일 */
+.confetti {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  opacity: 0.9;
+  animation: confetti-fall 800ms ease-out forwards;
+  z-index: 10000;
+}
+
+/* 컨페티 애니메이션 */
+@keyframes confetti-fall {
+  from {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-30px) rotate(360deg) scale(0.5);
+    opacity: 0;
+  }
+}
+
 @media (max-width: 787px) {
   .app-left,
   .app-right {

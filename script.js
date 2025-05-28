@@ -245,6 +245,46 @@ function getTierInfo(streak) {
   }
 }
 
+function triggerConfetti(li) {
+  // li를 상대위치로 만들어서 안 잘리게
+  li.style.position = li.style.position || "relative";
+  li.style.overflow = "visible";
+
+  const colors = ["#FFC700", "#FF0000", "#2E3191", "#41BBC7"];
+  const count = 15;
+  const height = li.clientHeight;
+
+  for (let i = 0; i < count; i++) {
+    const dot = document.createElement("div");
+    // 초기 스타일
+    Object.assign(dot.style, {
+      position: "absolute",
+      width: "6px",
+      height: "6px",
+      borderRadius: "50%",
+      background: colors[Math.floor(Math.random() * colors.length)],
+      left: Math.random() * 90 + "%",
+      top: height + "px",
+      opacity: "1",
+      pointerEvents: "none",
+      transition: "transform 0.6s ease-out, opacity 0.6s ease-out",
+    });
+    li.appendChild(dot);
+
+    // 애니메이션 시작 (약간 딜레이 줘야 transition 먹음)
+    setTimeout(() => {
+      // 위로 튕겨올라가면서 흩어짐
+      const dx = Math.random() * 40 - 20; // 좌우 퍼짐
+      const dy = -(Math.random() * 80 + 20); // 위로
+      dot.style.transform = `translate(${dx}px, ${dy}px) scale(0.5)`;
+      dot.style.opacity = "0";
+    }, 20);
+
+    // 끝나면 제거
+    dot.addEventListener("transitionend", () => dot.remove(), { once: true });
+  }
+}
+
 function renderTodos() {
   todos.forEach((todo) => {
     if (todo.streak === undefined) todo.streak = 0;
@@ -351,6 +391,7 @@ function renderTodos() {
         .then(() => {
           console.log("✅ Firestore 업데이트 성공");
           if (isDone) showStreakPopup(newStreak);
+          triggerConfetti(li);
         })
         .catch((err) => console.error("❌ 업데이트 실패:", err));
     });
