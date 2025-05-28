@@ -12,7 +12,7 @@ body {
 .page-layout {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: stretch;
   height: 100vh;
   gap: 0; /* 앱과 이미지 간 여백 */
   flex-direction: row-reverse;
@@ -21,7 +21,9 @@ body {
 #app {
   display: flex;
   flex-direction: column;
-  height: 100dvh;
+  height: 100%;
+  flex: 1;
+  min-height: 0;
   max-width: 480px; /* 모바일 기준 폭 제한 */
   width: 100%;
   margin: 0 80px; /* 화면 중앙 정렬 */
@@ -73,8 +75,7 @@ body {
   padding: 10px;
   border-top: 1px solid #ddd;
   background-color: #fff;
-  position: sticky;
-  bottom: 0;
+  margin-top: auto;
 }
 
 /* 입력창 스타일 */
@@ -441,6 +442,56 @@ li {
     transform: translateY(-30px) rotate(360deg) scale(0.5);
     opacity: 0;
   }
+}
+
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* 남은 공간 전부 차지 */
+  overflow: hidden; /* 내부 스크롤만 허용하도록 */
+}
+
+/* ─── 탭 내비게이션 전체 스타일 ─── */
+#tabNav {
+  display: flex;
+  background: #fff;
+  border-top: 1px solid #eee;
+  box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* ─── 버튼 공통 ─── */
+#tabNav button {
+  flex: 1;
+  padding: 12px 0;
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #888;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+/* ─── 액티브 버튼 ─── */
+#tabNav button.active {
+  color: #007aff;
+}
+
+/* ─── 액티브 인디케이터(밑줄) ─── */
+#tabNav button.active::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0; /* 0% */
+  width: 100%; /* 100% */
+  height: 3px;
+  background: #007aff;
+  border-radius: 2px 2px 0 0;
+}
+
+/* ─── 호버 효과 ─── */
+#tabNav button:hover {
+  color: #007aff;
 }
 
 @media (max-width: 787px) {

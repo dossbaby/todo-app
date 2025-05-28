@@ -448,6 +448,23 @@ function renderTodos() {
   });
 }
 
+function switchTab(tabId) {
+  document.querySelectorAll(".tab-content").forEach((el) => {
+    el.style.display = el.id === tabId ? "block" : "none";
+  });
+  document.querySelectorAll("#tabNav button").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.tab === tabId);
+  });
+}
+
+// 탭 버튼 클릭 바인딩
+document.querySelectorAll("#tabNav button").forEach((btn) => {
+  btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+});
+
+// 초기 탭: To-Do
+switchTab("tab-todo");
+
 function showStreakPopup(streak) {
   const { current, next, toNext } = getTierInfo(streak);
 

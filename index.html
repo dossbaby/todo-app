@@ -5,30 +5,75 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>쳇바퀴 100일 도전기!</title>
     <link rel="stylesheet" href="style.css" />
-    <!-- 절대경로 대신, index.html과 같은 폴더라면 상대경로 -->
     <link rel="icon" href="./favicon.ico" type="image/x-icon" />
-    <!-- 구형 브라우저 호환용 -->
     <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon" />
   </head>
   <body>
     <div class="page-layout">
-      <div class="app-left"><img src="qkznl.png" class="side-img left" /></div>
-      <div id="app">
-        <div id="dateHeader"></div>
-        <ul id="todoList"></ul>
-
-        <!-- 입력 영역 -->
-        <div id="inputBar">
-          <input type="text" id="todoInput" placeholder="할 일을 입력하세요" />
-          <button id="addBtn">추가</button>
-        </div>
+      <div class="app-left">
+        <img src="qkznl.png" class="side-img left" />
       </div>
+
+      <div id="app">
+        <!-- ① To-Do 탭 -->
+        <div id="tab-todo" class="tab-content">
+          <div id="dateHeader"></div>
+          <ul id="todoList"></ul>
+          <div id="inputBar">
+            <input
+              type="text"
+              id="todoInput"
+              placeholder="도전 항목을 입력하세요"
+            />
+            <button id="addBtn">추가</button>
+          </div>
+        </div>
+
+        <!-- ② 게시판 탭 (일단 빈 상태) -->
+        <div id="tab-board" class="tab-content" style="display: none">
+          <p style="text-align: center; margin-top: 40px; color: #888">
+            게시판 탭 준비 중…
+          </p>
+        </div>
+
+        <!-- ③ 추가 탭 자리 -->
+        <div id="tab-3" class="tab-content" style="display: none">
+          <p style="text-align: center; margin-top: 40px; color: #888">
+            게시판 탭 준비 중…
+          </p>
+        </div>
+        <div id="tab-4" class="tab-content" style="display: none">
+          <p style="text-align: center; margin-top: 40px; color: #888">
+            게시판 탭 준비 중…
+          </p>
+        </div>
+
+        <!-- ④ 탭 네비게이션 -->
+        <nav
+          id="tabNav"
+          style="
+            display: flex;
+            position: sticky;
+            bottom: 0;
+            background: #fff;
+            border-top: 1px solid #ddd;
+          "
+        >
+          <button data-tab="tab-todo" class="active" style="flex: 1">
+            🐹 챌린지
+          </button>
+          <button data-tab="tab-board" style="flex: 1">🗯️ 잡담</button>
+          <button data-tab="tab-3" style="flex: 1">🥘 음식</button>
+          <button data-tab="tab-4" style="flex: 1">😊 몰루</button>
+        </nav>
+      </div>
+
       <div class="app-right">
         <img src="hamster.png" class="side-img right" />
       </div>
     </div>
+
     <script src="config.js"></script>
-    <!-- index.html <head> 안, CSS 링크들 바로 아래에 -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
     <script src="script.js"></script>
