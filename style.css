@@ -576,8 +576,8 @@ div#tab-todo {
   /* 아래 세 줄을 교체/추가 */
   display: inline-block; /* block→inline-block 으로 바꿔서 내용 폭만큼만 자리 */
   max-width: none; /* 70% 제한 해제 */
-  white-space: nowrap; /* 줄 바꿈 금지 */
-  word-break: keep-all; /* 한글 단어 중간 자르지 않기 */
+  white-space: normal; /* 줄 바꿈 허용 */
+  word-break: break-word; /* 긴 단어도 잘라서 줄 바꿈 */
 }
 
 /* 4) 시간 */

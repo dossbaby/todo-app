@@ -488,6 +488,9 @@ function switchTab(tabId) {
   if (tabId === "tab-board") {
     unreadCount = 0;
     updateChatBadge();
+
+    const chatList = document.getElementById("chatList");
+    chatList.scrollTop = chatList.scrollHeight;
   }
 }
 
