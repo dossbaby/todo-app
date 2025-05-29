@@ -931,11 +931,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!cat) return alert("먼저 카테고리를 선택해 주세요.");
     const pool = questionPools[cat];
     // 섞고 앞 3개
-    const shuffled = pool.sort(() => Math.random() - 0.5);
-    const three = shuffled.slice(0, 3);
-    document.getElementById("questionsContainer").textContent =
-      three.join("\n");
-    document.getElementById("customQuestions").value = three.join("\n");
+    const idx = Math.floor(Math.random() * pool.length);
+    const question = pool[idx];
+
+    document.getElementById("customQuestions").value = question;
   };
 
   // 3) 폼 제출 → LLM API 호출
