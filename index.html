@@ -49,6 +49,13 @@
         <div id="tab-3" class="tab-content" style="display: none">
           <div class="tab-header">🔮 휘리릭운세</div>
 
+          <!-- 로딩/결과 전용 오버레이 -->
+          <div id="fortuneOverlay">
+            <span class="loading-text"
+              >🐰 운세를 뽑는 중이에요… 조금만 기다려주세요! ✨</span
+            >
+          </div>
+
           <form id="fortuneForm">
             <!-- 1) 생년월일 & 생시 -->
             <label
@@ -114,7 +121,7 @@
             <!-- 5) 운세 받기 -->
             <button
               id="generateFortuneBtn"
-              type="submit"
+              type="button"
               style="margin-top: 12px"
             >
               🪄 운세 보기

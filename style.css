@@ -723,6 +723,37 @@ div#tab-todo {
 
 #fortuneResult {
   padding: 0 20px;
+  overflow-y: auto;
+  padding-bottom: 20px;
+}
+
+/* ─── 운세 탭 전체 덮는 오버레이 ─── */
+#tab-3 {
+  /* position: relative; already set inline or in your CSS */
+}
+#fortuneOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  z-index: 1000;
+}
+#fortuneOverlay.visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+#fortuneOverlay .loading-text {
+  font-size: 18px;
+  color: #555;
 }
 
 @media (max-width: 787px) {
