@@ -541,38 +541,37 @@ div#tab-todo {
 }
 
 .chat-item {
-  /* display: flex;
+  display: flex;
   flex-direction: column;
   align-items: flex-start;
-  margin: 8px 16px; 
+  margin: 4px 0;
   color: #000;
   padding: 4px 0;
   border-radius: 8px;
   font-size: 16px;
   line-height: 1.4;
-  white-space: pre-wrap; */
-  display: flex;
+  white-space: pre-wrap;
+  /* display: flex;
   flex-direction: column;
-  align-items: flex-start; /* 기본 왼쪽 정렬 */
-  margin: 4px 0; /* 메시지 간 세로 간격 살짝 줄이기 */
-  color: #333; /* 기본 텍스트 색상 (너무 검정보다 살짝 부드럽게) */
-  padding: 2px 4px; /* 메시지 자체의 내부 여백 최소화 */
-  border-radius: 0; /* 혹시 모를 chat-item 자체의 둥근 모서리 제거 */
-  font-size: 15px; /* 기본 폰트 크기, 너무 크지 않게 */
+  align-items: flex-start; 
+  margin: 4px 0; 
+  color: #333; 
+  padding: 2px 4px; 
+  border-radius: 0; 
   line-height: 1.5;
-  white-space: pre-wrap; /* 줄바꿈 유지 */
+  white-space: pre-wrap;  */
 }
 
 /* 1) 사용자명 */
 .chat-user {
-  /* font-size: 13px;
+  font-size: 13px;
   color: #222;
-  margin-bottom: 4px; */
-  font-size: 12px; /* 기존 13px에서 살짝 더 작게 */
-  color: #333; /* 파란색 계열로 사용자 이름 강조 (메모장 필기 색상 느낌) */
-  /* color: #555; */ /* 아니면 차분한 회색 계열도 좋아 */
-  font-weight: 500; /* 너무 두껍지 않게 */
-  margin-bottom: 3px; /* 메시지 내용과의 간격 */
+  margin-bottom: 4px;
+  /* font-size: 12px; 
+  color: #333; 
+  color: #555; 
+  font-weight: 500; 
+  margin-bottom: 3px;  */
 }
 
 /* 2) 버블 + 시간 래퍼 */
@@ -583,21 +582,21 @@ div#tab-todo {
 
 /* 3) 메시지 버블 */
 .chat-bubble {
-  /* background: #fff;
+  background: #fff;
   padding: 10px 14px;
   border-radius: 12px;
   word-wrap: break-word;
   line-height: 1.4;
-  display: inline-block; 
-  max-width: none; 
-  white-space: normal; 
-  word-break: break-word;  */
-  background: transparent !important; /* 배경 투명하게! 이게 핵심! */
-  border-radius: 0; /* 둥근 모서리 제거 */
-  /* box-shadow: none; */ /* 혹시 그림자가 있다면 제거 */
-  line-height: inherit; /* .chat-item의 line-height 따르도록 */
-  max-width: 100%; /* 너비 제한 해제 */
+  display: inline-block;
+  max-width: none;
+  white-space: normal;
   word-break: break-word;
+  /* background: transparent !important; 
+  border-radius: 0; 
+  /* box-shadow: none; 
+  line-height: inherit; 
+  max-width: 100%; 
+  word-break: break-word; */
 }
 
 /* 4) 시간 */
@@ -627,6 +626,7 @@ div#tab-todo {
 /* ─── 내 채팅 버블 모양 (원한다면 색도 변경) ─── */
 .chat-item.my-chat .chat-bubble {
   background: #dcf8c6; /* 카톡 느낌 옅은 초록 (원치 않으면 생략) */
+  border-radius: 12px;
 }
 
 .chat-item.my-chat .chat-time {
@@ -690,6 +690,34 @@ div#tab-todo {
 
 .chat-fade-out {
   animation: fadeOut 1s ease-out forwards;
+}
+
+#fortuneForm {
+  margin: 20px;
+}
+
+#fortuneForm label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+#fortuneForm input,
+#fortuneForm select,
+#fortuneForm textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px;
+  margin-top: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+#fortuneForm button {
+  cursor: pointer;
+  width: 100%;
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: none;
+  background: #dcf8c6;
 }
 
 @media (max-width: 787px) {

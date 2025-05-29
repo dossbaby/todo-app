@@ -904,4 +904,71 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     });
+
+  // 1) 질문 풀 정의
+  const questionPools = {
+    love: [
+      "현재 내 연애 운은 어떤가요?",
+      "다가올 이성과의 인연은 어떻게 되나요?",
+      "내가 조심해야 할 관계의 장애물은?",
+    ],
+    career: [
+      "앞으로 커리어 성장의 기회는?",
+      "조심해야 할 직장 내 갈등은?",
+      "나의 잠재력을 최대로 발휘하려면?",
+    ],
+    health: [
+      "다가올 건강상의 주의점은?",
+      "내 몸의 에너지 흐름을 좋게 하는 법은?",
+      "스트레스 관리법 조언 부탁해요.",
+    ],
+    // …원하는 만큼 카테고리 추가
+  };
+
+  // 2) 랜덤 질문 뽑기
+  document.getElementById("randomQsBtn").onclick = () => {
+    const cat = document.getElementById("categorySelect").value;
+    if (!cat) return alert("먼저 카테고리를 선택해 주세요.");
+    const pool = questionPools[cat];
+    // 섞고 앞 3개
+    const shuffled = pool.sort(() => Math.random() - 0.5);
+    const three = shuffled.slice(0, 3);
+    document.getElementById("questionsContainer").textContent =
+      three.join("\n");
+    document.getElementById("customQuestions").value = three.join("\n");
+  };
+
+  // 3) 폼 제출 → LLM API 호출
+  document
+    .getElementById("fortuneForm")
+    .addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const birthDate = document.getElementById("birthDate").value; // YYYY-MM-DD
+      const birthTime = document.getElementById("birthTime").value; // HH:MM
+      const mbti = document.getElementById("mbtiSelect").value;
+      const category = document.getElementById("categorySelect").value;
+      const questions = document.getElementById("customQuestions").value.trim();
+      if (!questions) return alert("질문을 입력하거나 랜덤 질문을 받아주세요.");
+
+      // 4) 프롬프트 조합
+      const prompt = `
+당신은 사주·MBTI·타로 전문가입니다.
+- 생년월일: ${birthDate}
+- 생시: ${birthTime}
+- MBTI: ${mbti}
+- 카테고리: ${category}
+
+아래 질문들에 답해주세요 (타로 3장 리딩 포함):
+${questions}
+  `.trim();
+
+      // 5) OpenAI (ChatGPT) 호출 — 백엔드 프록시나 직접 OpenAI 키 필요
+      const res = await fetch("/api/fortune", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+      const { text } = await res.json();
+      document.getElementById("fortuneResult").textContent = text;
+    });
 });
