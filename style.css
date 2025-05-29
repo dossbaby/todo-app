@@ -546,7 +546,7 @@ div#tab-todo {
   align-items: flex-start; /* 왼쪽 정렬 */
   margin: 8px 16px; /* 좌우 여백 */
   color: #000;
-  padding: 4px 12px;
+  padding: 4px 0;
   border-radius: 8px;
   font-size: 16px;
   line-height: 1.4;
