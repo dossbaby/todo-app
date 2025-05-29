@@ -721,6 +721,10 @@ div#tab-todo {
   background: #dcf8c6;
 }
 
+#fortuneResult {
+  padding: 0 20px;
+}
+
 @media (max-width: 787px) {
   .app-left,
   .app-right {
