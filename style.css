@@ -588,6 +588,31 @@ div#tab-todo {
   white-space: nowrap;
 }
 
+/* ─── 내 채팅은 오른쪽 끝에 붙이기 ─── */
+.chat-item.my-chat {
+  align-items: flex-end; /* 컨테이너 끝으로 밀기 */
+}
+
+/* ─── 내 채팅은 User 이름도 우측 정렬 ─── */
+.chat-item.my-chat .chat-user {
+  text-align: right;
+  width: 100%;
+}
+
+/* ─── 내 채팅 버블은 거꾸로 배치 ─── */
+.chat-item.my-chat .chat-bubble-wrapper {
+  flex-direction: row-reverse; /* 버블+시간 순서 뒤집기 */
+}
+
+/* ─── 내 채팅 버블 모양 (원한다면 색도 변경) ─── */
+.chat-item.my-chat .chat-bubble {
+  background: #dcf8c6; /* 카톡 느낌 옅은 초록 (원치 않으면 생략) */
+}
+
+.chat-item.my-chat .chat-time {
+  margin-right: 8px;
+}
+
 /* 잡담 입력바 (To-Do와 똑같이) */
 #chatInputBar {
   display: flex;

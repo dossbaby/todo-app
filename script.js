@@ -8,6 +8,9 @@ const emojis = ["🐶", "🐱", "🐰", "🦊", "🐻", "🐼", "🐨", "🐸"];
 let username = localStorage.getItem("username");
 let userIcon = localStorage.getItem("userIcon");
 
+const savedChatIcon = localStorage.getItem("userIcon") || "🐹";
+const savedChatName = localStorage.getItem("username") || "익명";
+
 function createUserModal() {
   // 오버레이
   const overlay = document.createElement("div");
@@ -848,6 +851,11 @@ document.addEventListener("DOMContentLoaded", () => {
           // 1) 메시지 DOM 생성
           const item = document.createElement("div");
           item.className = "chat-item";
+          // ─── 내 메시지면 오른쪽 정렬 ───
+          if (data.user === savedChatName) {
+            item.classList.add("my-chat");
+          }
+
           item.dataset.id = id;
           const timeString = data.createdAt
             ? data.createdAt.toDate().toLocaleTimeString("ko-KR", {
@@ -862,8 +870,7 @@ document.addEventListener("DOMContentLoaded", () => {
               });
 
           // ★ 여기에 추가 ★
-          const savedChatIcon = localStorage.getItem("userIcon") || "🐹";
-          const savedChatName = localStorage.getItem("username") || "익명";
+
           const chatIcon =
             data.user === savedChatName ? savedChatIcon : data.userIcon || "🐹";
           const chatName =
