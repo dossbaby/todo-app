@@ -450,7 +450,6 @@ li {
   flex-direction: column;
   flex: 1; /* 남은 공간 전부 차지 */
   overflow: hidden; /* 내부 스크롤만 허용하도록 */
-  min-height: 0;
 }
 
 div#tab-todo {
