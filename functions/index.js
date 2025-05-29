@@ -1,24 +1,22 @@
 const { onRequest } = require("firebase-functions/v2/https");
+const cors = require("cors")({ origin: true });
 const admin = require("firebase-admin");
 const { OpenAI } = require("openai");
-const cors = require("cors")({ origin: true });
 
 admin.initializeApp();
 
 exports.fortune = onRequest(
-  {
-    region: "asia-northeast3", // ← seoul
-    secrets: ["OPENAI_API_KEY"], // if you’re using secrets
-  },
-  async (req, res) => {
-    if (req.method !== "POST") {
-      return res.status(405).send("Only POST allowed");
-    }
+  { region: "asia-northeast3", secrets: ["OPENAI_API_KEY"] },
+  (req, res) =>
+    cors(req, res, async () => {
+      if (req.method === "OPTIONS") return res.status(204).send("");
+      if (req.method !== "POST")
+        return res.status(405).send("Only POST allowed");
 
-    const { dob, birthTime, mbti, category, question } = req.body;
+      const { dob, birthTime, mbti, category, question } = req.body;
 
-    // ← your prompt unchanged
-    const prompt = `
+      // ← your prompt unchanged
+      const prompt = `
 기본 리딩 구조
 카드 구성:
 - 카드 3장 + 최종 카드 1장
@@ -57,15 +55,16 @@ exports.fortune = onRequest(
 • 질문: ${question}  
 `;
 
-    try {
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [{ role: "user", content: prompt }],
-      });
-      res.json({ fortune: completion.choices[0].message.content });
-    } catch (err) {
-      console.error(err);
-      res.status(500).send("Failed to generate fortune");
-    }
-  }
+      try {
+        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [{ role: "user", content: prompt }],
+        });
+        res.json({ fortune: completion.choices[0].message.content });
+      } catch (e) {
+        console.error(e);
+        res.status(500).send("Failed to generate fortune");
+      }
+    })
 );

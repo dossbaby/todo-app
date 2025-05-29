@@ -907,7 +907,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // 0) your function URL
-const FORTUNE_URL = "https://fortune-gkz7mkan7a-du.a.run.app";
+const FORTUNE_URL =
+  "https://asia-northeast3-todo-app-doss.cloudfunctions.net/fortune";
 
 // 1) 질문 풀 정의
 const questionPools = {
