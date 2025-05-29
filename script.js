@@ -448,6 +448,31 @@ function renderTodos() {
   });
 }
 
+// 1) 전역 변수
+let unreadCount = 0;
+let activeTab = "tab-todo"; // 기본 활성 탭
+
+const chatTabBtn = document.querySelector(
+  '#tabNav button[data-tab="tab-board"]'
+);
+
+// 2) 뱃지 렌더 함수
+function updateChatBadge() {
+  // badge 엘리먼트 찾아보기
+  let badge = chatTabBtn.querySelector(".badge");
+  if (unreadCount > 0) {
+    if (!badge) {
+      badge = document.createElement("span");
+      badge.className = "badge";
+      chatTabBtn.appendChild(badge);
+    }
+    badge.textContent = unreadCount;
+  } else if (badge) {
+    badge.remove();
+  }
+}
+
+// 3) 탭 전환 함수 수정
 function switchTab(tabId) {
   document.querySelectorAll(".tab-content").forEach((el) => {
     el.style.display = el.id === tabId ? "flex" : "none";
@@ -455,14 +480,23 @@ function switchTab(tabId) {
   document.querySelectorAll("#tabNav button").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.tab === tabId);
   });
+
+  // 활성 탭 기록
+  activeTab = tabId;
+
+  // 채팅 탭으로 넘어오면 unread 초기화
+  if (tabId === "tab-board") {
+    unreadCount = 0;
+    updateChatBadge();
+  }
 }
 
-// 탭 버튼 클릭 바인딩
+// 4) 탭 버튼 클릭 바인딩
 document.querySelectorAll("#tabNav button").forEach((btn) => {
   btn.addEventListener("click", () => switchTab(btn.dataset.tab));
 });
 
-// 초기 탭: To-Do
+// 5) 초기 탭 설정 (페이지 로드 시 To-Do 탭 보여주기)
 switchTab("tab-todo");
 
 function showStreakPopup(streak) {
@@ -797,6 +831,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // 아직 렌더되지 않았고, 만료 전이라면
         if (!seen.has(id) && msUntilExpire > 0) {
+          // ★ 여기에 뱃지 업데이트 코드를 바로 넣어주세요
+          if (activeTab !== "tab-board") {
+            unreadCount++;
+            updateChatBadge();
+          }
           seen.add(id);
 
           // 1) 메시지 DOM 생성
