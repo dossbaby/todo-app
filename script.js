@@ -411,9 +411,13 @@ function renderTodos() {
     });
 
     const userLabel = document.createElement("span");
-    const icon = todo.userIcon != null ? todo.userIcon : "🐹";
-    const name = todo.user || username;
-    userLabel.textContent = `${icon} ${name}`;
+    // 1) 로컬에 저장된 내 설정 가져오기 (없으면 기본값)
+    const savedIcon = localStorage.getItem("userIcon") || "🐹";
+    const savedName = localStorage.getItem("username") || "익명";
+    // 2) DB에 저장된 값이 있으면 그걸 우선, 아니면 로컬값
+    const displayIcon = todo.userIcon || savedIcon;
+    const displayName = todo.user || savedName;
+    userLabel.textContent = `${displayIcon} ${displayName}`;
     userLabel.style.fontSize = "12px";
     userLabel.style.opacity = "0.6";
 
@@ -856,8 +860,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 minute: "numeric",
                 hour12: true,
               });
+
+          // ★ 여기에 추가 ★
+          const savedChatIcon = localStorage.getItem("userIcon") || "🐹";
+          const savedChatName = localStorage.getItem("username") || "익명";
+          const chatIcon =
+            data.user === savedChatName ? savedChatIcon : data.userIcon || "🐹";
+          const chatName =
+            data.user === savedChatName ? savedChatName : data.user || "익명";
+
           item.innerHTML = `
-          <div class="chat-user">${data.userIcon} ${data.user}</div>
+          <div class="chat-user">${chatIcon} ${chatName}</div>
           <div class="chat-bubble-wrapper">
             <div class="chat-bubble">${data.text}</div>
             <div class="chat-time">${timeString}</div>
