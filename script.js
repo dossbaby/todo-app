@@ -740,3 +740,106 @@ button.addEventListener("click", addTodo);
 input.addEventListener("keydown", function (e) {
   if (e.key === "Enter") addTodo();
 });
+
+async function addChat() {
+  const txt = chatInput.value.trim();
+  if (!txt) return;
+  const expiresAt = new Date(Date.now() + 22 * 60 * 1000);
+  await db.collection("chats").add({
+    text: txt,
+    user: username,
+    userIcon,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    expiresAt: firebase.firestore.Timestamp.fromDate(expiresAt),
+  });
+  chatInput.value = "";
+}
+
+// script.js 맨 아래에 추가
+// 1) DOM이 전부 그려진 뒤 실행되도록
+document.addEventListener("DOMContentLoaded", () => {
+  const postBtn = document.getElementById("postBtn");
+  const chatInput = document.getElementById("chatInput");
+  const chatList = document.getElementById("chatList");
+
+  // (디버깅용) 요소가 제대로 선택됐는지 확인
+  console.log("chat elements:", { postBtn, chatInput, chatList });
+
+  // 2) 클릭 ➡️ addChat()
+  postBtn.addEventListener("click", async () => {
+    console.log("📨 postBtn clicked");
+    await addChat();
+  });
+
+  // 3) 엔터 ➡️ addChat()
+  chatInput.addEventListener("keydown", async (e) => {
+    console.log("⌨️ keydown:", e.key);
+    if (e.key === "Enter") {
+      e.preventDefault();
+      await addChat();
+    }
+  });
+
+  // 4) Firestore 구독 (렌더링)
+  // DOMContentLoaded 내부, 이벤트 바인딩 바로 아래에 붙여주세요
+  const seen = new Set();
+
+  db.collection("chats")
+    .orderBy("createdAt", "asc")
+    .onSnapshot((snapshot) => {
+      const now = firebase.firestore.Timestamp.now().toDate();
+
+      snapshot.forEach((doc) => {
+        const id = doc.id;
+        const data = doc.data();
+        const expiresAt = data.expiresAt.toDate();
+        const msUntilExpire = expiresAt.getTime() - now.getTime();
+
+        // 아직 렌더되지 않았고, 만료 전이라면
+        if (!seen.has(id) && msUntilExpire > 0) {
+          seen.add(id);
+
+          // 1) 메시지 DOM 생성
+          const item = document.createElement("div");
+          item.className = "chat-item";
+          item.dataset.id = id;
+          const timeString = data.createdAt
+            ? data.createdAt.toDate().toLocaleTimeString("ko-KR", {
+                hour: "numeric",
+                minute: "numeric",
+                hour12: true,
+              })
+            : now.toLocaleTimeString("ko-KR", {
+                hour: "numeric",
+                minute: "numeric",
+                hour12: true,
+              });
+          item.innerHTML = `
+          <div class="chat-user">${data.userIcon} ${data.user}</div>
+          <div class="chat-bubble-wrapper">
+            <div class="chat-bubble">${data.text}</div>
+            <div class="chat-time">${timeString}</div>
+          </div>
+        `;
+          chatList.appendChild(item);
+          chatList.scrollTop = chatList.scrollHeight;
+          // 2) 만료 시점에 서서히 사라지면서 DB에서도 삭제
+          setTimeout(() => {
+            // 페이드아웃 애니메이션 클래스 추가
+            item.classList.add("chat-fade-out");
+            // 애니 끝나면 실제 삭제
+            item.addEventListener(
+              "animationend",
+              () => {
+                // (A) 화면에서 제거
+                item.remove();
+                // (B) Firestore에서도 삭제
+                db.collection("chats").doc(id).delete();
+              },
+              { once: true }
+            );
+          }, msUntilExpire);
+        }
+      });
+    });
+});

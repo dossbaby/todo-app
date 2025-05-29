@@ -29,11 +29,20 @@
           </div>
         </div>
 
-        <!-- ② 게시판 탭 (일단 빈 상태) -->
         <div id="tab-board" class="tab-content" style="display: none">
-          <p style="text-align: center; margin-top: 40px; color: #888">
-            게시판 탭 준비 중…
-          </p>
+          <!-- 잡담 탭 헤더 -->
+          <div class="tab-header">💨 휘리릭챗 — 22분 뒤 펑!</div>
+          <!-- ① 채팅 리스트 -->
+          <div
+            id="chatList"
+            style="flex: 1; overflow-y: auto; padding: 0 16px"
+          ></div>
+
+          <!-- ② To-Do 입력바와 똑같은 구조 -->
+          <div id="chatInputBar">
+            <input type="text" id="chatInput" placeholder="잡담을 입력하세요" />
+            <button id="postBtn">등록</button>
+          </div>
         </div>
 
         <!-- ③ 추가 탭 자리 -->
@@ -62,7 +71,7 @@
           <button data-tab="tab-todo" class="active" style="flex: 1">
             🐹 챌린지
           </button>
-          <button data-tab="tab-board" style="flex: 1">🗯️ 잡담</button>
+          <button data-tab="tab-board" style="flex: 1">💨 휘리릭챗</button>
           <button data-tab="tab-3" style="flex: 1">🥘 생각중</button>
           <button data-tab="tab-4" style="flex: 1">😊 몰라</button>
         </nav>
