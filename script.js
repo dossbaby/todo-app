@@ -939,17 +939,72 @@ document.getElementById("randomQsBtn").addEventListener("click", () => {
   document.getElementById("customQuestions").value = question;
 });
 
-// 3) loading UI
+// 로딩 중 순환할 마법 이모지들
+const loadingEmojis = ["🔮", "✨", "🧚", "🌙", "🦄"];
+let emojiInterval, maxTimeout;
+
 function showLoading() {
-  // 👉 텍스트 지우고, 오버레이를 띄웁니다
-  document.getElementById("fortuneResult").textContent = "";
-  document.getElementById("fortuneOverlay").classList.add("visible");
+  const overlay = document.getElementById("fortuneOverlay");
+  overlay.classList.remove("fullscreen");
+  overlay.classList.add("popup", "visible");
+  const emojiEl = document.getElementById("fortuneEmoji");
+  const textEl = document.getElementById("fortuneLoadingText");
+  const resultEl = document.getElementById("fortuneResult");
+
+  // 결과 초기화
+  resultEl.textContent = "";
+
+  // 안내 문구 초기화
+  textEl.textContent = "🐰 운세 뽑는 중… 최대 30초까지 걸릴 수 있어요! ✨";
+
+  // 이모지 애니메이션 시작
+  let idx = 0;
+  emojiEl.textContent = loadingEmojis[0];
+  clearInterval(emojiInterval);
+  emojiInterval = setInterval(() => {
+    idx = (idx + 1) % loadingEmojis.length;
+    emojiEl.textContent = loadingEmojis[idx];
+    // 살짝 흔들림/확대 효과
+    emojiEl.style.transform = `scale(${1 + Math.random() * 0.2}) rotate(${
+      (Math.random() - 0.5) * 30
+    }deg)`;
+  }, 500);
+
+  // 30초 경과 시 문구 교체
+  clearTimeout(maxTimeout);
+  maxTimeout = setTimeout(() => {
+    textEl.textContent =
+      "⏳ 여전히 마법을 외우고 있어요… 조금만 더 기다려 주세요!";
+  }, 30000);
+
+  // 오버레이 보이기
+  overlay.classList.add("visible");
 }
 
+// 결과 표시할 때는 팝업 모드 끄고 풀스크린 모드 켜기
+function showResult() {
+  clearInterval(emojiInterval);
+  clearTimeout(maxTimeout);
+
+  const overlay = document.getElementById("fortuneOverlay");
+  overlay.classList.remove("popup");
+  overlay.classList.add("fullscreen", "visible");
+}
+
+// 닫기 버튼 눌렀을 때
+document.getElementById("closeFortuneOverlay").addEventListener("click", () => {
+  document.getElementById("fortuneOverlay").className = "fortune-overlay"; // 모두 지우고 숨김
+});
+
 function hideLoading() {
-  // 👉 오버레이 감추기
+  clearInterval(emojiInterval);
+  clearTimeout(maxTimeout);
   document.getElementById("fortuneOverlay").classList.remove("visible");
 }
+
+document
+  .getElementById("closeFortuneOverlay")
+  .addEventListener("click", hideLoading);
 
 // 4) 서버 호출
 async function getFortune(payload) {
@@ -967,11 +1022,25 @@ async function getFortune(payload) {
 }
 
 // 5) 폼 제출 핸들러
+console.log(
+  "🔮 fortuneForm handler attaching…",
+  document.getElementById("fortuneForm")
+);
 document.getElementById("fortuneForm").addEventListener("submit", async (e) => {
+  console.log("🔮 fortuneForm submitted!");
   e.preventDefault();
   showLoading();
 
-  // (기존과 동일) 폼 값 꺼내고 검증...
+  const dob = document.getElementById("birthDate").value; // YYYY-MM-DD
+  const birthTime = document.getElementById("birthTime").value; // HH:MM
+  const mbti = document.getElementById("mbtiSelect").value;
+  const category = document.getElementById("categorySelect").value;
+  const question = document.getElementById("customQuestions").value.trim();
+  if (!dob || !birthTime || !mbti || !category || !question) {
+    alert("모든 항목을 채워주세요!");
+    hideLoading();
+    return;
+  }
 
   try {
     const result = await getFortune({
@@ -981,12 +1050,17 @@ document.getElementById("fortuneForm").addEventListener("submit", async (e) => {
       category,
       question,
     });
+
+    // 결과 렌더 직전에
+
+    document.getElementById("fortuneLoadingText").style.display = "none";
+    document.getElementById("fortuneEmoji").style.display = "none";
     document.getElementById("fortuneResult").textContent = result;
   } catch (err) {
-    console.error(err);
     document.getElementById("fortuneResult").textContent =
       "❌ 운세 생성 중 오류가 발생했어요.";
   } finally {
-    hideLoading(); // 👉 성공/실패 상관없이 로딩 오버레이 제거
+    showResult(); // ← 여기를 이렇게 바꿔주세요
   }
 });
+j;

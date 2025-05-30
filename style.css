@@ -582,7 +582,7 @@ div#tab-todo {
 
 /* 3) 메시지 버블 */
 .chat-bubble {
-  background: #fff;
+  background: #eee;
   padding: 10px 14px;
   border-radius: 12px;
   word-wrap: break-word;
@@ -721,39 +721,110 @@ div#tab-todo {
   background: #dcf8c6;
 }
 
-#fortuneResult {
-  padding: 0 20px;
-  overflow-y: auto;
-  padding-bottom: 20px;
+#tab-3 {
+  position: relative;
+  /* flex:1 already 있으니 overflow-hidden 그대로 OK */
 }
 
-/* ─── 운세 탭 전체 덮는 오버레이 ─── */
-#tab-3 {
-  /* position: relative; already set inline or in your CSS */
+/* 기본 overlay (숨김) */
+.fortune-overlay {
+  display: none;
+  z-index: 1000;
+  overflow: hidden;
 }
-#fortuneOverlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.95);
+
+/* ─── 팝업 모드 ─── */
+.fortune-overlay.popup,
+#fortuneOverlay.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  height: 240px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.4s ease;
-  z-index: 1000;
-}
-#fortuneOverlay.visible {
-  opacity: 1;
-  pointer-events: all;
 }
 
-#fortuneOverlay .loading-text {
-  font-size: 18px;
-  color: #555;
+/* ─── 풀스크린 모드 ─── */
+.fortune-overlay.fullscreen {
+  position: absolute;
+  top: 48px; /* 탭 헤더 높이에 맞춰 조정 */
+  bottom: 52px; /* 내비게이션 높이에 맞춰 조정 */
+  left: 0;
+  right: 0;
+  background: #fff;
+  overflow-y: auto;
+  display: block;
+  padding: 20px 16px;
+}
+
+/* 공통 visible 토글 */
+.fortune-overlay.visible {
+  display: block;
+}
+/* ----------------------------------
+   3) fortune-box: 내부 요소 전체 넓이 사용
+----------------------------------- */
+.fortune-box {
+  width: 100%;
+  max-width: 480px; /* 모바일 폭 제한 (원하면) */
+  padding: 0 16px;
+}
+
+/* ----------------------------------
+   4) 결과 텍스트가 스크롤할 수 있게
+----------------------------------- */
+/* 결과 텍스트가 스크롤 되도록 */
+.fortune-result {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  margin-top: 12px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+/* ----------------------------------
+   5) 닫기 버튼은 overlay 위에 고정
+----------------------------------- */
+.fortune-close-btn {
+  position: sticky;
+  bottom: 16px;
+  display: block;
+  margin: 20px auto 0;
+  padding: 8px 16px;
+  background: #007aff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* 1) 팝업 모드 박스 안을 세로 정렬(column + center) */
+.fortune-overlay.popup .fortune-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 2) 이모지를 크게, 위쪽에 마진 주기 */
+.fortune-emoji {
+  font-size: 64px; /* 원하는 크기로 조절하세요 */
+  margin-bottom: 16px; /* 이모지와 텍스트 사이 여백 */
+  display: block;
+}
+
+/* 3) 로딩 텍스트도 가운데 정렬 */
+.fortune-loading-text {
+  text-align: center;
+  margin-bottom: 12px;
+  font-size: 18px; /* 필요시 크기 조절 */
 }
 
 @media (max-width: 787px) {
